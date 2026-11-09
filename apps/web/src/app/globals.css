@@ -1,0 +1,2159 @@
+/* Hallmark · shape: app screen (/explore, /agent, /verify) · genre: modern-minimal · theme: brand (Night) · redesign: full
+ * paper: #0b0a09 · accent: #ff5a36 · display: Unbounded · body: Geist
+ * nav: kept · signature: the hash-drawn seal on every agent and record · states: loading, empty, error, paused, full
+ * axes: dark/geometric/wax · posture: settled · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V3 · weakest: V, the three screens share one shell by design; each leads with its own object (the agent ledger, the agent card with its seal, the record and its seal) */
+/* Hallmark · waive 38iii · .headline em sits on its own line after a <br> · the homepage proof heads are two lines, "Don't trust us." then "Check it.", never one coloured word */
+/* Hallmark · waive 24b · the explore ledger keeps 14px and 18px paddings · re-spacing the working agents table and ledger rows is outside this redesign of the three screens */
+/* Hallmark · waive 72 · details.card is closed and its owner and address rows sit hidden below its edge · the agent page folds addresses into Advanced on purpose, and the sweep measures the folded rows */
+/* Hallmark · reworded "Explore agents." to "Explore agents" · an app screen head takes no full stop */
+/* Hallmark · reworded "Check it yourself." to "Verify a proof" · 54 named the eyebrow above it; the eyebrow became the head and "Check it yourself" moved into the line under it */
+
+/* Night · the live network under a seal. One dark ground, warm light text, one wax red.
+ * display: Unbounded · body: Geist · mono: Geist Mono (figures, hashes and code only)
+ * The hero is the night sky (stars, a giant seal); everything below sits on raised panels with hairlines.
+ * The seal is drawn from a string (lib/seal.ts), so every record, agent and template carries its own.
+ * Ported from agentenact/site (2026-10-26) as the one look of the merged app. Dark only: no theme toggle, no light palette.
+ * The panel's screens keep their class and token names (shadcn's --background, --primary, …, and --white, --sand,
+ * --proven) mapped onto Night below, so components/ui and the owner screens need no edits to turn dark.
+ */
+@import 'tailwindcss';
+
+/* Utilities read the semantic variables below, so a panel can re-theme everything inside it. */
+@theme inline {
+  --font-display: var(--font-unbounded);
+  --font-sans: var(--font-geist);
+  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-deep: var(--accent-deep);
+  --color-accent-tint: var(--accent-tint);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
+  --color-raised: var(--raised);
+  --color-deep: var(--deep);
+  /* panel names, mapped onto Night */
+  --color-proven: var(--proven);
+  --color-white: var(--white);
+  --color-sand: var(--sand);
+  --color-on-fill: var(--on-fill);
+  /* shadcn semantic names (components/ui), mapped onto Night */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-md: 12px;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* the page: a warm near-black ground, warm light text, one wax red */
+  --ground: #0b0a09;
+  --deep: #060607; /* the night sky behind the hero */
+  --raised: #131210; /* panels and cards on the ground */
+  --text: #f3efe8;
+  --text-2: #b3ac9f; /* 8.9:1 on ground, 8.2:1 on raised */
+  --text-3: #8a847a; /* 5.3:1 on ground, 4.9:1 on raised */
+  --ground-line: rgb(243 239 232 / 0.1);
+  --raised-line: rgb(243 239 232 / 0.09);
+
+  --wax: #ff5a36; /* the seal and the main button; 6.4:1 on ground */
+  --wax-ink: #ff7a5c; /* wax as text, 7.4:1 on ground */
+  --wax-deep: #e2482a; /* hover/pressed on a wax fill */
+  --wax-tint: rgb(255 90 54 / 0.12);
+  --wax-on: #0b0a09; /* text on a wax fill */
+  /* errors and broken proofs: a cooler pink-crimson, never the accent. 6.6:1 on ground */
+  --danger: #ff5c8a;
+  /* a check that passed */
+  --ok: #5fd39a;
+  /* testnet, paused index: a warning, not an error */
+  --caution: #e8c547;
+  --caution-tint: rgb(232 197 71 / 0.1);
+
+  /* translucent layers, named so no rule carries a literal */
+  --scrim: rgb(11 10 9 / 0.72); /* the header pane over scrolling content */
+  --sky-veil: rgb(6 6 7 / 0.9); /* panels laid over the night sky */
+  --shade: rgb(0 0 0 / 0.7); /* drop shadows */
+  --sheen: rgb(255 255 255 / 0.06); /* the top edge of a pane */
+  --wax-ring: rgb(255 90 54 / 0.6);
+  --wax-glow: rgb(255 90 54 / 0.18);
+  --field-edge: rgb(243 239 232 / 0.4); /* 3.2:1 on the deep ground */
+  --chip: rgb(243 239 232 / 0.08);
+  --hover: rgb(243 239 232 / 0.04);
+  --mask: #000; /* mask-image reads alpha only */
+  --edge-strong: rgb(243 239 232 / 0.22); /* a hovered card edge */
+  --edge-sky: rgb(243 239 232 / 0.16); /* a panel edge on the night sky */
+  --caution-edge: rgb(232 197 71 / 0.4);
+  --wax-edge: rgb(255 90 54 / 0.5);
+
+  /* code samples on /create (lib/highlight.ts): wax for keywords, a warm parchment for strings, light for calls */
+  --code-keyword: var(--wax-ink);
+  --code-string: #d8c7a1; /* 10.6:1 on raised */
+  --code-number: var(--caution);
+  --code-comment: var(--text-3);
+  --code-call: var(--text);
+  --code-key: var(--text-2);
+
+  --bg: var(--ground);
+  --fg: var(--text);
+  --fg-2: var(--text-2);
+  --fg-3: var(--text-3);
+  --line: var(--ground-line);
+  --hairline: rgb(243 239 232 / 0.06); /* rules between rows in a quiet list */
+  --accent: var(--wax);
+  --accent-ink: var(--wax-ink);
+  --accent-deep: var(--wax-deep);
+  --accent-tint: var(--wax-tint);
+
+  /* panel names: --white was the card surface, --sand the second neutral layer, --proven the proven-sale green */
+  --white: var(--raised);
+  --sand: #1c1a17;
+  --sand-line: rgb(243 239 232 / 0.14);
+  --card-line: var(--raised-line);
+  --proven: var(--ok);
+  --green: var(--proven);
+  --on-fill: #0b0a09; /* text on proven / destructive fills */
+
+  /* shadcn semantic names */
+  --background: var(--bg);
+  --foreground: var(--fg);
+  --card: var(--raised);
+  --card-foreground: var(--fg);
+  --popover: var(--raised);
+  --popover-foreground: var(--fg);
+  --primary: var(--fg);
+  --primary-foreground: var(--bg);
+  --secondary: var(--line);
+  --secondary-foreground: var(--fg);
+  --muted: var(--line);
+  --muted-foreground: var(--fg-3);
+  --destructive: var(--danger);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--fg);
+
+  --radius-panel: 20px;
+  --radius-object: 14px;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+
+html {
+  color-scheme: dark;
+  scrollbar-color: var(--text-3) var(--ground);
+  background: var(--ground);
+  scroll-padding-top: 5.5rem; /* the sticky header covers the top 74px */
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Three weights in running use: 400, 500, 600. */
+b,
+strong {
+  font-weight: 600;
+}
+
+::selection {
+  background: var(--wax);
+  color: var(--wax-on);
+}
+
+:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
+/* Display headings: Unbounded, a wide geometric face; the second line (<em>) is lighter, never italic.
+ * Unbounded runs wide, so its sizes sit about a fifth below what a narrow grotesk would take. */
+.headline {
+  font-family: var(--font-unbounded), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.headline em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--fg-2);
+}
+
+.eyebrow {
+  font-size: 14px;
+  color: var(--fg-2);
+}
+
+@layer components {
+  /* Buttons: pills. Filled = the panel text colour; quiet = outline; accent = the wax outline. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    padding: 0 22px;
+    border: 1px solid var(--fg);
+    border-radius: 9999px;
+    background: var(--fg);
+    color: var(--bg);
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition:
+      background-color 180ms var(--ease-out),
+      color 180ms var(--ease-out),
+      transform 120ms var(--ease-out);
+  }
+
+  .btn:hover {
+    background: var(--fg-2);
+    border-color: var(--fg-2);
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn-quiet {
+    background: transparent;
+    color: var(--fg);
+    border-color: var(--line);
+  }
+
+  .btn-quiet:hover {
+    background: var(--line);
+    border-color: var(--line);
+  }
+
+  .btn-accent {
+    background: transparent;
+    color: var(--accent-ink);
+    border-color: var(--accent-ink);
+  }
+
+  .btn-accent:hover {
+    background: var(--accent-ink);
+    color: var(--bg);
+    border-color: var(--accent-ink);
+  }
+
+  .btn-accent:active {
+    background: var(--accent-deep);
+    border-color: var(--accent-deep);
+  }
+
+  .btn-sm {
+    height: 40px;
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .btn:disabled {
+    background: var(--chip);
+    border-color: var(--line);
+    color: var(--fg-3);
+    cursor: not-allowed;
+  }
+}
+
+/* Status dot in the wallet chain header (components/wallet-chain.tsx). */
+.hud-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--fg-3);
+}
+
+.hud-dot[data-state='verifying'] {
+  background: var(--accent-ink);
+  animation: breathe 1400ms var(--ease-in-out) infinite alternate;
+}
+
+.hud-dot[data-state='verified'] {
+  background: var(--fg);
+}
+
+.hud-dot[data-state='broken'] {
+  background: var(--danger);
+}
+
+@keyframes breathe {
+  to {
+    opacity: 0.3;
+  }
+}
+
+/* Ports: the round nodes in the wallet chain and the how-it-works rail. */
+.port {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  background: var(--bg);
+  color: var(--fg-3);
+  transition:
+    border-color 500ms,
+    color 500ms,
+    box-shadow 500ms;
+}
+
+.port[data-on='true'] {
+  border-color: var(--fg);
+  color: var(--fg);
+  box-shadow: 0 0 0 5px var(--line);
+}
+
+/* The wallet chain's smaller ports: lit by colour alone, no halo. */
+.port-sm {
+  width: 40px;
+  height: 40px;
+}
+
+.port-sm[data-on='true'] {
+  box-shadow: none;
+}
+
+.port[data-on='fail'] {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* The step in play: its port takes the accent, nothing pulses. */
+.port[data-now='true'] {
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+}
+
+/* Line glyphs draw themselves in; hidden only while their port is explicitly off. */
+.draw path,
+.draw circle {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 900ms var(--ease-out);
+}
+
+.port[data-on='false'] .draw path,
+.port[data-on='false'] .draw circle {
+  stroke-dashoffset: 1;
+}
+
+/* Beams between ports: vertical on phones, horizontal from md. The fill draws
+ * along the beam when its check resolves and retracts at once on a new run. */
+.beam-line {
+  background: var(--line);
+}
+
+.beam-fill {
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 150ms var(--ease-out);
+}
+
+.beam[data-state='pass'] .beam-fill,
+.beam[data-state='fail'] .beam-fill {
+  transform: none;
+  transition: transform 450ms var(--ease-expo);
+}
+
+.beam[data-state='pass'] .beam-fill {
+  background: var(--fg-2);
+}
+
+.beam[data-state='fail'] .beam-fill {
+  background: repeating-linear-gradient(180deg, var(--danger) 0 4px, transparent 4px 8px);
+}
+
+@media (min-width: 768px) {
+  .beam-fill {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .beam[data-state='fail'] .beam-fill {
+    background: repeating-linear-gradient(90deg, var(--danger) 0 4px, transparent 4px 8px);
+  }
+}
+
+/* Verify progress (components/live-proof.tsx): a hairline that advances while the
+ * chain is read, completes on the answer, and turns danger-red only for a broken proof. */
+.progress[data-phase] {
+  background: var(--fg-3);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.progress[data-phase='running'] {
+  animation: progress-run 1100ms var(--ease-expo) forwards;
+}
+
+.progress[data-phase='done'] {
+  animation: progress-done 500ms var(--ease-expo) forwards;
+}
+
+.progress[data-ok='false'] {
+  background: var(--danger);
+}
+
+@keyframes progress-run {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(0.85);
+  }
+}
+
+@keyframes progress-done {
+  0% {
+    transform: scaleX(0.85);
+    opacity: 1;
+  }
+  40% {
+    transform: none;
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 0.5;
+  }
+}
+
+/* An answer comes into focus rather than sliding in. */
+.resolve,
+.settle {
+  animation: resolve 420ms var(--ease-expo) both;
+}
+
+@keyframes resolve {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+/* The homepage figures fade in beside the network heading; the space is already there, so nothing jumps. */
+.numbers-fade {
+  animation: fade 600ms var(--ease-out) both;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---- Explore: the Ledger ----------------------------------------------------------------------
+ * A public record. Numbers in mono, every line linking to its proof. Mobile first; the table opens
+ * into four columns from 760px and the log/registry sit side by side from 980px.
+ */
+.ex-head { display: flex; flex-direction: column; gap: 16px; margin-top: 28px; min-width: 0; }
+.ex-live { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; border: 1px solid var(--line); border-radius: 9999px; padding: 8px 12px; font-size: 13px; color: var(--fg-2); }
+.ex-live-off { color: var(--fg-3); }
+.ex-dot { width: 7px; height: 7px; border-radius: 9999px; background: var(--ok); flex-shrink: 0; }
+.ex-live.ex-warn { border-color: var(--danger); }
+.ex-live.ex-warn .ex-dot { background: var(--danger); }
+.ex-live.ex-wait { border-color: var(--caution-edge); color: var(--caution); }
+.ex-live.ex-wait .ex-dot { background: var(--caution); }
+.ex-src { margin: 0; font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 13px; border-top: 1px solid var(--text); min-width: 0; }
+.ex-src > div { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.ex-src dt { color: var(--fg-2); }
+.ex-src dd { margin: 0; overflow-wrap: anywhere; }
+.ex-st { font-weight: 500; }
+.ex-warn { color: var(--danger); }
+@media (min-width: 980px) {
+  .ex-head { flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 40px; margin-top: 44px; }
+  .ex-live { align-self: auto; flex-shrink: 0; margin-bottom: 8px; }
+}
+@media (max-width: 359px) {
+  .ex-src > div { grid-template-columns: 6.5rem minmax(0, 1fr); gap: 8px; }
+}
+
+.ex-notice { margin-top: 24px; border: 1px solid var(--danger); border-radius: var(--radius-object); padding: 16px 20px; font-size: 15px; }
+/* A paused index is a wait, not a failure: caution, not danger. */
+.ex-notice.ex-wait { border-color: var(--caution-edge); background: var(--caution-tint); color: var(--fg-2); }
+.ex-notice.ex-wait b { color: var(--fg); }
+
+/* the ledger sheet */
+.ex-ledger { margin-top: 24px; padding: 16px 20px 20px; border-radius: var(--radius-panel); background: var(--raised); min-width: 0; }
+.ex-lt { width: 100%; border-collapse: collapse; }
+.ex-lt thead { display: none; }
+.ex-lt tbody, .ex-lt tr { display: block; }
+.ex-lt tr { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 12px 16px; padding: 24px 0; border-top: 1px solid var(--raised-line); }
+.ex-lt tbody tr:first-child { border-top: 0; }
+.ex-lt td { display: block; min-width: 0; text-align: left; }
+.ex-fig { grid-column: 1; }
+.ex-what { grid-column: 2; }
+.ex-how, .ex-dl { grid-column: 1 / -1; }
+.ex-n { display: block; font-family: var(--font-geist-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: 36px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; overflow-wrap: anywhere; }
+.ex-unit { display: block; margin-top: 8px; font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 12px; color: var(--fg-2); }
+.ex-none { display: inline-block; margin-top: 12px; border: 1px solid var(--raised-line); border-radius: 9999px; padding: 4px 8px; font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 11.5px; line-height: 1.3; color: var(--fg-2); max-width: 100%; }
+.ex-what h3 { font-family: var(--font-unbounded), ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: 20px; line-height: 1.15; letter-spacing: -0.02em; }
+.ex-what p { margin-top: 8px; font-size: 15px; color: var(--fg-2); max-width: 46ch; }
+.ex-what .ex-zero, .ex-what .ex-ctx { color: var(--fg); font-size: 14px; max-width: 50ch; margin-top: 12px; }
+.ex-what .ex-ctx { color: var(--fg-2); padding-top: 12px; border-top: 1px dashed var(--raised-line); }
+.ex-what .ex-ctx b { font-family: var(--font-geist-mono), ui-monospace, monospace; font-weight: 500; color: var(--fg); }
+.ex-what a { color: var(--accent-ink); text-underline-offset: 4px; text-decoration: underline; }
+.ex-what a.ex-idl { color: inherit; text-decoration: none; }
+.ex-how { font-size: 14px; color: var(--fg-2); max-width: 60ch; }
+.ex-how code, .ex-src code { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 0.9em; color: var(--fg); }
+.ex-lt td.ex-dl { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.ex-rows { display: inline-flex; align-items: center; min-height: 44px; padding-right: 4px; font-size: 15px; font-weight: 500; color: var(--accent-ink); text-decoration: underline; text-underline-offset: 4px; }
+.ex-rows:hover { color: var(--fg); }
+.ex-fn { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 12px; color: var(--fg-2); overflow-wrap: anywhere; }
+.ex-amend { margin-top: 4px; padding-top: 16px; border-top: 1px solid var(--raised-line); font-size: 13.5px; color: var(--fg-2); max-width: 72ch; }
+.ex-sk-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 16px; padding: 24px 0; border-top: 1px solid var(--raised-line); }
+.ex-sk-row:first-child { border-top: 0; }
+.ex-sk-fig { height: 36px; width: 64px; border-radius: 10px; }
+
+@media (min-width: 760px) {
+  .ex-ledger { padding: 20px 40px 24px; }
+  .ex-lt thead { display: block; }
+  .ex-lt thead tr, .ex-lt tr { grid-template-columns: 190px minmax(0, 1.15fr) minmax(0, 1fr) 150px; gap: 28px; }
+  .ex-lt thead tr { padding: 8px 0 12px; border: 0; border-bottom: 1px solid var(--text); }
+  .ex-lt tr { padding: 28px 0; }
+  .ex-lt th { text-align: left; font-size: 13px; font-weight: 500; color: var(--fg-2); }
+  .ex-fig, .ex-what, .ex-how, .ex-dl { grid-column: auto; }
+  .ex-n { font-size: 44px; }
+  .ex-lt td.ex-dl { flex-direction: column; align-items: flex-start; gap: 0; }
+  .ex-how { padding-top: 4px; }
+  .ex-sk-row { grid-template-columns: 190px minmax(0, 1fr); gap: 28px; padding: 28px 0; }
+  .ex-sk-fig { height: 44px; width: 96px; }
+}
+
+/* the overview row: open figures on a hairline, no boxes. A zero recedes instead of standing as a large figure. */
+.ex-ov { margin: 32px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; border-top: 1px solid var(--line); min-width: 0; }
+.ex-ovt { padding: 18px 0 20px; min-width: 0; display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 10px; }
+.ex-ovt:nth-child(n + 3) { border-top: 1px solid var(--hairline); }
+.ex-ovt dt { font-size: 13px; line-height: 1.4; color: var(--fg-3); text-wrap: balance; }
+.ex-ovt dd { margin: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; }
+.ex-ovn { font-variant-numeric: tabular-nums; font-size: 28px; font-weight: 500; letter-spacing: -0.025em; line-height: 1; color: var(--fg); }
+.ex-ovu { font-size: 13px; color: var(--fg-3); }
+.ex-ovnone { font-size: 12px; color: var(--fg-3); }
+.ex-ovz .ex-ovn { color: var(--fg-3); font-weight: 400; }
+.ex-ov-stale .ex-ovn { color: var(--fg-2); }
+@media (min-width: 760px) {
+  .ex-ov { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 0; }
+  .ex-ov[data-tiles="6"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ex-ovt { padding: 20px 24px 22px; border-left: 1px solid var(--hairline); }
+  .ex-ovt:nth-child(n + 3) { border-top: 0; }
+  .ex-ov:not([data-tiles="6"]) .ex-ovt:nth-child(4n + 1), .ex-ov[data-tiles="6"] .ex-ovt:nth-child(3n + 1) { border-left: 0; padding-left: 0; }
+  .ex-ov[data-tiles="6"] .ex-ovt:nth-child(n + 4) { border-top: 1px solid var(--hairline); }
+  .ex-ovn { font-size: 32px; }
+}
+@media (min-width: 1180px) {
+  .ex-ov[data-tiles="6"] { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .ex-ov[data-tiles="6"] .ex-ovt:nth-child(n) { border-top: 0; border-left: 1px solid var(--hairline); padding-left: 24px; }
+  .ex-ov[data-tiles="6"] .ex-ovt:first-child { border-left: 0; padding-left: 0; }
+}
+
+/* two columns: agents + recent activity */
+.ex-cols { margin-top: 48px; display: grid; gap: 48px; min-width: 0; }
+@media (min-width: 980px) {
+  .ex-cols { grid-template-columns: minmax(0, 1fr) 320px; gap: 48px; align-items: start; }
+  .ex-side { position: sticky; top: 96px; }
+}
+.ex-sh { display: flex; flex-direction: column; gap: 4px 16px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.ex-sh-row { flex-direction: row; flex-wrap: wrap; align-items: baseline; justify-content: space-between; border-bottom: 0; padding-bottom: 0; }
+.ex-sh h2 { font-family: var(--font-unbounded), ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: 20px; line-height: 1.2; letter-spacing: -0.02em; }
+.ex-sh p { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 12.5px; color: var(--fg-2); }
+.ex-side .ex-sh p { font-family: inherit; font-size: 13px; color: var(--fg-3); }
+.ex-quiet { padding: 24px 0 8px; font-size: 14px; color: var(--fg-2); max-width: 46ch; }
+.ex-small { padding-top: 12px; font-size: 12.5px; }
+.ex-more { margin-top: 16px; min-height: 44px; }
+
+/* the feed: a quiet log. The sentence carries the row; the transaction hash is a dim footnote that warms on hover. */
+.ex-log, .ex-cards { list-style: none; margin: 0; padding: 0; }
+.ex-ln { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); gap: 12px; padding: 12px 0 10px; border-bottom: 1px solid var(--hairline); font-size: 14px; line-height: 1.45; }
+.ex-log .ex-ln:last-child { border-bottom: 0; }
+.ex-t { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 12px; line-height: 1.7; color: var(--fg-3); font-variant-numeric: tabular-nums; }
+.ex-m { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ex-tx { overflow-wrap: anywhere; }
+.ex-reg-line, .ex-ln.ex-reg .ex-tx { color: var(--fg-2); }
+.ex-amt { font-variant-numeric: tabular-nums; font-weight: 500; white-space: nowrap; }
+.ex-idl { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 0.93em; color: inherit; text-decoration: none; transition: color 160ms var(--ease-out); }
+.ex-idl:hover { color: var(--accent-ink); }
+.ex-hash { display: inline-flex; align-items: center; align-self: flex-start; min-height: 32px; font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 11.5px; color: var(--fg-3); text-decoration: none; text-underline-offset: 3px; overflow-wrap: anywhere; transition: color 160ms var(--ease-out); }
+.ex-hash:hover { color: var(--accent-ink); text-decoration: underline; text-decoration-thickness: 1px; }
+.ex-idl:focus-visible, .ex-hash:focus-visible { outline: 2px solid var(--wax-ring); outline-offset: 2px; border-radius: 4px; }
+.ex-log .ex-fn { font-size: 11.5px; color: var(--fg-3); line-height: 2; }
+@media (min-width: 760px) { .ex-hash { min-height: 26px; } }
+.ex-tag { display: inline-block; border-radius: 6px; padding: 4px 8px; background: var(--chip); font-size: 12px; line-height: 1.3; color: var(--fg-2); white-space: nowrap; vertical-align: 1px; }
+.ex-tag-ae { background: var(--wax-tint); color: var(--accent-ink); }
+.ex-log .ex-tag { padding: 0; background: none; font-size: 12px; color: var(--fg-3); vertical-align: 0; }
+.ex-log .ex-tag-ae { display: inline-flex; align-items: center; gap: 6px; color: var(--fg-2); }
+.ex-log .ex-tag-ae::before { content: ''; width: 5px; height: 5px; border-radius: 9999px; background: var(--wax); }
+
+.ex-search { display: block; width: 100%; min-width: 0; height: 44px; margin: 16px 0 20px; padding: 0 16px; border: 1px solid var(--field-edge); border-radius: 12px; background: var(--raised); color: var(--fg); font-size: 15px; }
+.ex-search:focus-visible { outline: 2px solid var(--wax-ring); outline-offset: 2px; }
+.ex-search::placeholder { color: var(--fg-3); opacity: 1; }
+.ex-search:hover { border-color: var(--fg-3); }
+
+/* the agent list: one row per agent. Narrow: name, service, then the figures as one quiet line.
+   From 720px of list width the figures stand in right-aligned columns that sort the list. */
+.ex-agents { container-type: inline-size; container-name: exag; }
+.ex-cards { border-top: 1px solid var(--line); }
+.ex-lh { display: none; }
+.ex-ag {
+  position: relative; display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: 14px; row-gap: 6px; align-items: start;
+  padding: 18px 12px; margin: 0 -12px; border-bottom: 1px solid var(--line); border-radius: 0; text-decoration: none;
+  transition: background-color 180ms var(--ease-out);
+}
+.ex-cards li:last-child .ex-ag { border-bottom: 0; }
+.ex-ag:hover { background: var(--hover); }
+.ex-ag:active { background: var(--raised-line); }
+.ex-ag:focus-visible { outline: 2px solid var(--wax-ring); outline-offset: -2px; border-radius: 10px; }
+.ex-seal { grid-row: 1 / span 2; margin-top: 1px; }
+.ex-am { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ex-an { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; min-width: 0; }
+.ex-nm { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 15.5px; line-height: 1.3; letter-spacing: -0.01em; transition: color 180ms var(--ease-out); }
+.ex-ag:hover .ex-nm { color: var(--accent-ink); }
+.ex-aid { font-size: 12.5px; color: var(--fg-3); font-variant-numeric: tabular-nums; }
+.ex-an .ex-tag { align-self: center; padding: 2px 7px; font-size: 11px; letter-spacing: 0.01em; }
+.ex-as { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; min-width: 0; font-size: 13.5px; color: var(--fg-3); }
+.ex-svc { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--fg-2); }
+.ex-as b { font-weight: 500; color: var(--fg); font-variant-numeric: tabular-nums; }
+.ex-sp { font-size: 11.5px; color: var(--fg-3); white-space: nowrap; }
+/* for hire: the one accent marks that the agent can be paid for work, the price sits beside it */
+.ex-hire { font-size: 12px; font-weight: 500; color: var(--accent-ink); white-space: nowrap; }
+.ex-price { white-space: nowrap; color: var(--fg-2); }
+
+/* the figures: one wrapped line under the name on narrow lists */
+.ex-figs { grid-column: 2; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin-top: 4px; min-width: 0; }
+.ex-c { display: inline-flex; align-items: baseline; gap: 6px; min-width: 0; font-size: 13px; color: var(--fg-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ex-c b { font-weight: 500; color: var(--fg); }
+.ex-v { color: var(--fg-2); }
+.ex-sub { font-size: 12px; color: var(--fg-3); }
+.ex-tier { color: var(--fg-3); }
+.ex-tier::before { content: '· '; }
+.ex-v .ex-tier { margin-left: 4px; }
+.ex-nil { color: var(--fg-3); }
+@container exag (max-width: 719px) {
+  .ex-c-nil, .ex-sub { display: none; }
+}
+
+@container exag (min-width: 720px) {
+  .ex-lh, .ex-ag { grid-template-columns: 28px minmax(0, 1fr) 8.5rem 5.5rem 7rem 4.5rem; column-gap: 20px; }
+  .ex-lh { display: grid; align-items: center; padding: 0 12px 10px; margin: 0 -12px; font-size: 12px; color: var(--fg-3); letter-spacing: 0.02em; }
+  .ex-lh > span:first-child { grid-column: 1 / span 2; }
+  .ex-lhc { justify-self: end; }
+  .ex-lhc button { display: inline-flex; align-items: center; gap: 5px; min-height: 28px; padding: 0 2px; border: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; cursor: pointer; transition: color 150ms var(--ease-out); }
+  .ex-lhc button svg { opacity: 0; transition: opacity 150ms var(--ease-out); }
+  .ex-lhc button:hover { color: var(--fg); }
+  .ex-lhc button:hover svg { opacity: 0.6; }
+  .ex-lhc button[aria-pressed='true'] { color: var(--fg); }
+  .ex-lhc button[aria-pressed='true'] svg { opacity: 1; color: var(--accent-ink); }
+  .ex-lhc button:focus-visible { outline: 2px solid var(--wax-ring); outline-offset: 2px; border-radius: 4px; }
+  .ex-ag { align-items: center; padding-top: 16px; padding-bottom: 16px; }
+  .ex-seal { grid-row: 1; grid-column: 1; margin-top: 0; align-self: center; }
+  .ex-ag > .ex-am { grid-column: 2; grid-row: 1; }
+  .ex-figs { display: contents; }
+  .ex-earn { grid-column: 3; }
+  .ex-proof { grid-column: 4; }
+  .ex-kar { grid-column: 5; }
+  .ex-act { grid-column: 6; }
+  .ex-figs > .ex-c { grid-row: 1; flex-direction: column; align-items: flex-end; gap: 2px; justify-self: end; text-align: right; font-size: 14px; }
+  .ex-u { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .ex-v { color: var(--fg-3); font-size: 12.5px; }
+  .ex-v b { font-size: 14.5px; letter-spacing: -0.01em; }
+  .ex-kar .ex-v { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .ex-tier { font-size: 12px; }
+  .ex-tier::before { content: none; }
+  .ex-v .ex-tier { margin-left: 0; }
+}
+.ex-search { margin-bottom: 12px; }
+
+/* filters and sort, between the search box and the list */
+.ex-ctl { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 24px; }
+.ex-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ex-chip { min-height: 34px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--fg-2); font-size: 13px; cursor: pointer; transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out); }
+.ex-chip:hover { border-color: var(--fg-3); color: var(--fg); }
+.ex-chip[aria-pressed='true'] { border-color: var(--wax); background: var(--wax-tint); color: var(--accent-ink); }
+.ex-chip:focus-visible, .ex-sort select:focus-visible { outline: 2px solid var(--wax-ring); outline-offset: 2px; }
+.ex-sort { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fg-2); }
+.ex-sort select { min-height: 34px; padding: 0 30px 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--raised) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a847a' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center; color: var(--fg); font-size: 13px; appearance: none; cursor: pointer; }
+.ex-sort select:hover { border-color: var(--fg-3); }
+/* the column heads sort wide lists, so the menu is only for narrow ones */
+@container exag (min-width: 720px) { .ex-sort { display: none; } }
+.ex-side .ex-tag { display: block; width: fit-content; border: 0; padding: 0; margin: 1px 0 0; font-size: 12px; }
+
+/* the closed methods section: sources, definitions, CSV rows */
+.ex-method { margin-top: 64px; border-top: 1px solid var(--text); }
+.ex-method > summary { list-style: none; cursor: pointer; display: flex; flex-direction: column; gap: 4px; padding: 20px 36px 20px 0; position: relative; }
+.ex-method > summary::-webkit-details-marker { display: none; }
+.ex-method > summary::after { content: '+'; position: absolute; right: 4px; top: 18px; font-size: 24px; line-height: 1; color: var(--fg-2); }
+.ex-method[open] > summary::after { content: '−'; }
+.ex-mt { font-family: var(--font-unbounded), ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: 20px; letter-spacing: -0.02em; }
+.ex-ms { font-size: 14px; color: var(--fg-2); }
+.ex-method > summary:hover .ex-mt { color: var(--accent-ink); }
+.ex-mb { padding-bottom: 8px; }
+.ex-mb .ex-src { max-width: 560px; }
+
+.ex-empty { padding: 28px 0 8px; max-width: 46ch; }
+.ex-empty p { color: var(--fg-2); font-size: 15px; overflow-wrap: anywhere; }
+.ex-empty .ex-et { font-family: var(--font-unbounded), ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: 20px; line-height: 1.2; letter-spacing: -0.02em; color: var(--fg); margin-bottom: 8px; }
+.ex-empty .btn { margin-top: 16px; min-height: 44px; }
+
+/* ---- Night layout (2026-10-26): the hero is the night sky, the rest sits on raised panels. */
+
+/* The floating header: a dark pane that blurs what scrolls beneath it. */
+.glass {
+  position: relative;
+  isolation: isolate;
+  background: var(--scrim);
+  border: 1px solid var(--raised-line);
+  box-shadow:
+    inset 0 1px 0 var(--sheen),
+    0 12px 32px -18px var(--shade);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  backdrop-filter: blur(24px) saturate(140%);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: var(--ground);
+  }
+}
+
+/* The one filled wax button on a screen. */
+.btn-wax {
+  background: var(--wax);
+  border-color: var(--wax);
+  color: var(--wax-on);
+}
+.btn-wax:hover {
+  background: var(--wax-deep);
+  border-color: var(--wax-deep);
+}
+
+@layer components {
+  /* Raised cards on the ground: the record card, agent cards, the ask box. The panel's flow screens rely on the
+   * default padding; every site card sets its own with utilities, which win over this layer. */
+  .card {
+    background: var(--raised);
+    color: var(--fg);
+    border: 1px solid var(--raised-line);
+    border-radius: var(--radius-panel);
+    padding: 20px;
+  }
+
+  @media (min-width: 640px) {
+    .card {
+      padding: 24px 26px;
+    }
+  }
+}
+
+/* A section on the ground: a hairline on top, generous space, no fill. */
+.sheet {
+  border-top: 1px solid var(--line);
+}
+
+/* Focus inside a card: the field itself draws no outline; the card it sits in takes a soft wax ring instead. */
+.card input:focus-visible,
+.card textarea:focus-visible {
+  outline: none;
+}
+.card:has(:focus-visible) {
+  border-color: var(--wax-ring);
+  box-shadow: 0 0 0 4px var(--wax-glow);
+}
+/* The ask has no box around it, so the ring hugs the field alone and leaves the button outside it. */
+.ask input:focus-visible {
+  outline: none;
+  border-color: var(--wax-ring);
+  box-shadow: 0 0 0 3px var(--wax-glow);
+}
+.card .btn:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+/* ---- Hero: deep space ------------------------------------------------------------------------- */
+/*
+ * Deep space (components/deep-space.tsx, lib/space.ts). Four depths of stars drawn once into svg patterns, two faint
+ * colour fields, the seal as a lit body, one rare meteor. All motion is transform and opacity between fixed values,
+ * so it runs on the compositor: a canvas redrawing the field cost the main thread 170–1000 ms/s, these layers ~0.
+ * The three near depths share one slow camera sway (same period, same easing) and differ only in how far they travel,
+ * so they read as one camera floating, not layers sliding past each other. The far field and the second colour field
+ * hold still and are painted once: few moving layers keep the compositor cheap too. Reduced motion: one still frame.
+ */
+.night {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--deep);
+}
+.space {
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 40%, transparent 55%, rgb(0 0 0 / 0.35) 100%),
+    var(--deep);
+}
+/* The colour fields: huge, very low contrast, never close to the text's contrast. The moving one is boxed to its
+ * own glow, not the whole sky, so the compositor blends as few pixels as it can every frame. */
+.nebula {
+  position: absolute;
+}
+.nebula-a {
+  left: -12%;
+  top: -10%;
+  width: 84%;
+  height: 100%;
+  background:
+    radial-gradient(50% 50% at 50% 50%, rgb(70 72 170 / 0.13), transparent 100%),
+    radial-gradient(70% 16% at 62% 66%, rgb(120 116 190 / 0.05), transparent 100%);
+}
+.nebula-b {
+  inset: -20%;
+  background:
+    radial-gradient(30% 36% at 70% 30%, rgb(96 56 150 / 0.11), transparent 100%),
+    radial-gradient(20% 24% at 88% 78%, rgb(255 90 54 / 0.03), transparent 100%);
+}
+.sky-drift {
+  position: absolute;
+  inset: 0;
+}
+/* Each moving depth is oversized by just what it travels, never more. */
+.sky-drift[data-depth='1'] {
+  inset: -12px -28px;
+}
+.sky-drift[data-depth='2'] {
+  inset: -24px -64px;
+}
+.sky-drift[data-depth='3'] {
+  inset: -38px -108px;
+}
+.sky-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@media (max-width: 639px) {
+  .sky-layer[data-wide-only] {
+    display: none;
+  }
+}
+.meteor-lane {
+  position: absolute;
+  left: 30%;
+  top: 12%;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+}
+.meteor {
+  position: absolute;
+  left: 0;
+  top: -0.5px;
+  width: 150px;
+  height: 1px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, rgb(243 239 232 / 0), rgb(220 228 255 / 0.55) 85%, rgb(255 255 255 / 0.85));
+  opacity: 0;
+}
+/* The seal hangs in the void: a dark body lit from the upper left, a faint wax rim, turning once every few minutes. */
+.night-seal {
+  position: absolute;
+  z-index: -1;
+  right: -18rem;
+  top: 2rem;
+  width: min(860px, 120vw);
+  pointer-events: none;
+}
+.seal-body {
+  position: relative;
+}
+.night-seal svg {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.seal-shade {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  /* a faint wax rim, and the terminator: lit from the upper left, the far side falls into the dark */
+  background:
+    radial-gradient(closest-side, transparent 88%, rgb(255 110 70 / 0.07) 96%, transparent 100%),
+    linear-gradient(128deg, rgb(255 236 220 / 0.04) 18%, transparent 42%, rgb(6 6 7 / 0.55) 70%, rgb(6 6 7 / 0.82) 92%);
+}
+@media (max-width: 767px) {
+  .night-seal {
+    right: -55vw;
+    top: auto;
+    bottom: -20vw;
+    opacity: 0.55;
+  }
+}
+/* The hero's foot fades into the ground of the next section. */
+.night-fade {
+  position: absolute;
+  z-index: -1;
+  inset: auto 0 0 0;
+  height: 180px;
+  background: linear-gradient(to bottom, rgb(11 10 9 / 0), var(--ground));
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .nebula-a {
+    animation: nebula-a 96s ease-in-out infinite alternate;
+  }
+  .sky-drift[data-depth='1'] {
+    animation: sway-1 72s ease-in-out -20s infinite alternate;
+  }
+  .sky-drift[data-depth='2'] {
+    animation: sway-2 72s ease-in-out -20s infinite alternate;
+  }
+  .sky-drift[data-depth='3'] {
+    animation: sway-3 72s ease-in-out -20s infinite alternate;
+  }
+  .sky-layer[data-twinkle] {
+    animation: twinkle var(--tw-dur, 6s) ease-in-out var(--tw-delay, 0s) infinite;
+  }
+  .meteor[data-run] {
+    animation: meteor 1.7s cubic-bezier(0.3, 0.1, 0.4, 1) 1;
+  }
+  .night-seal svg {
+    animation: drift 240s linear infinite;
+  }
+  /* Off screen or in a hidden tab, the script pauses everything in the hero (lib/space.ts). */
+  .night[data-paused] * {
+    animation-play-state: paused !important;
+  }
+  @keyframes nebula-a {
+    from {
+      transform: translate3d(0, 0, 0) scale(1);
+      opacity: 0.75;
+    }
+    to {
+      transform: translate3d(-3%, 2%, 0) scale(1.08);
+      opacity: 1;
+    }
+  }
+  /* One camera sway: same period and easing for every depth; the nearer, the farther it travels. */
+  @keyframes sway-1 {
+    from {
+      transform: translate3d(20px, 6px, 0) scale(1);
+    }
+    to {
+      transform: translate3d(-20px, -6px, 0) scale(1.012);
+    }
+  }
+  @keyframes sway-2 {
+    from {
+      transform: translate3d(48px, 14px, 0) scale(1);
+    }
+    to {
+      transform: translate3d(-48px, -14px, 0) scale(1.03);
+    }
+  }
+  @keyframes sway-3 {
+    from {
+      transform: translate3d(84px, 24px, 0) scale(1);
+    }
+    to {
+      transform: translate3d(-84px, -24px, 0) scale(1.05);
+    }
+  }
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
+  }
+  @keyframes meteor {
+    0% {
+      transform: translate3d(0, 0, 0) scaleX(0.3);
+      opacity: 0;
+    }
+    18% {
+      opacity: 0.7;
+    }
+    100% {
+      transform: translate3d(320px, 0, 0) scaleX(1);
+      opacity: 0;
+    }
+  }
+  @keyframes drift {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+/* The ask: a field and the wax button. */
+.ask {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-radius: 14px;
+}
+.ask input {
+  flex: 1 1 240px;
+  min-width: 0;
+  height: 54px;
+  padding: 0 16px;
+  border: 1px solid var(--field-edge);
+  border-radius: 12px;
+  background: var(--sky-veil);
+  color: var(--fg);
+  font-size: 16px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.ask input::placeholder {
+  color: var(--fg-3);
+  opacity: 1;
+}
+
+/* The ticker under the hero: the latest transactions, sliding by. Decorative; the panel above is the real list. */
+.ticker {
+  overflow: hidden;
+  white-space: nowrap;
+  mask-image: linear-gradient(90deg, transparent, var(--mask) 6%, var(--mask) 94%, transparent);
+}
+.ticker-track {
+  display: inline-flex;
+  gap: 36px;
+  padding-right: 36px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ticker-track {
+    animation: ticker 60s linear infinite;
+  }
+  .ticker:hover .ticker-track,
+  .ticker:focus-within .ticker-track {
+    animation-play-state: paused;
+  }
+  @keyframes ticker {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+/* Small status pill: live, paused, testnet. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  padding: 4px 12px;
+  font-size: 13px;
+  color: var(--fg-2);
+}
+.pill-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--ok);
+  flex-shrink: 0;
+}
+.pill-dot[data-state='paused'] {
+  background: var(--caution);
+}
+.pill-dot[data-state='off'] {
+  background: var(--fg-3);
+}
+
+/* The hero's community box: four counts in a two-by-two grid ruled by hairlines (the grid gap shows the line colour). */
+.hero-community {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+}
+/* Each cell is a link: figure above its label, so the figures share one line however a label wraps. */
+.hero-community > li > a {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 18px 20px 16px;
+  container-type: inline-size;
+  background: var(--sky-veil);
+  transition: background-color 150ms ease-out;
+}
+.hero-community > li > a:hover {
+  background: rgb(14 14 16 / 0.92);
+}
+.hero-community > li > a:hover .hero-community-l {
+  color: var(--text);
+}
+.hero-community > li > a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.hero-community-n {
+  font-family: var(--font-display);
+  /* Sized by its cell, so the longest figure (`999.9K`, `9,999`) fits a 320px phone. */
+  font-size: min(1.875rem, 22cqi);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--text);
+}
+.hero-community-l {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--fg-2);
+  transition: color 150ms ease-out;
+}
+
+/* Event chips in the hero panel and the network table. */
+.chip-ev {
+  display: inline-block;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  line-height: 1.3;
+  white-space: nowrap;
+  background: var(--chip);
+  color: var(--fg-2);
+}
+.chip-ev[data-kind='paid'] {
+  background: var(--wax-tint);
+  color: var(--wax-ink);
+}
+
+/* ---- Panel screens (draft, sign-in, the owner's agent), on Night ----------------------- */
+
+/* Panels: one containment layer each. Everything inside reads the panel's own variables. */
+.panel {
+  background: var(--bg);
+  color: var(--fg);
+  border-radius: var(--radius-panel);
+}
+
+.panel-sand {
+  --bg: var(--sand);
+  --line: var(--sand-line);
+}
+
+/* Images drawn for one theme (a seal): the app is dark only, so the light-surface copy never shows. */
+.on-light {
+  display: none;
+}
+
+@layer components {
+  /* An editable value in the sentence: a raised pill, accent-ink border, a chevron. The ::before widens the tap area to 44px. */
+  .value-pill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    max-width: 100%;
+    padding: 1px 10px 2px 12px;
+    border: 1.5px solid var(--accent-ink);
+    border-radius: 9999px;
+    background: var(--white);
+    color: var(--accent-ink);
+    font: inherit;
+    line-height: 1.35;
+    text-align: left;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+    transition:
+      background-color 180ms var(--ease-out),
+      color 180ms var(--ease-out);
+  }
+
+  .value-pill::before {
+    content: '';
+    position: absolute;
+    inset: -4px 0;
+  }
+
+  .value-pill::after {
+    content: '';
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg) translateY(-2px);
+  }
+
+  .value-pill[aria-expanded='true'] {
+    background: var(--accent-ink);
+    color: var(--wax-on);
+  }
+
+  @media (hover: hover) {
+    .value-pill:hover {
+      background: var(--accent-ink);
+      color: var(--wax-on);
+    }
+  }
+
+  .value-pill:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  /* The drafting and trying waits: a hairline with a short segment gliding along it (data-progress, not the
+   * verify progress line above, which carries data-phase). */
+  .progress[data-progress] {
+    position: relative;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--line);
+    overflow: hidden;
+  }
+
+  .progress[data-progress] > i {
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 28%;
+    border-radius: 2px;
+    background: var(--fg);
+  }
+
+  /* Step rings: the number inside a drawn ring (StepRing). */
+  .ring-track {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1.5;
+  }
+  .ring-draw {
+    fill: none;
+    stroke: var(--fg);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+  .ring-working .ring-draw {
+    stroke-dasharray: 22 66;
+  }
+  /* Waiting for you: the ring takes the wax, so the one step that needs a press reads as the person's turn. */
+  .ring-asking .ring-draw {
+    stroke-dasharray: 88 0;
+    stroke: var(--accent-ink);
+  }
+  .ring-asking {
+    color: var(--accent-ink);
+  }
+  .ring-halo {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    border: 1.5px solid var(--accent-ink);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ring-done .ring-fill {
+    fill: var(--fg);
+  }
+  .ring-done .ring-tick {
+    fill: none;
+    stroke: var(--bg);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .soft {
+    animation: soft 2.6s var(--ease-in-out) infinite;
+  }
+  @keyframes soft {
+    50% {
+      opacity: 0.6;
+    }
+  }
+  /* Working: a short arc travels slowly around the number. */
+  .ring-working .ring-draw {
+    animation: ring-travel 2.4s linear infinite;
+  }
+  @keyframes ring-travel {
+    to {
+      stroke-dashoffset: -88;
+    }
+  }
+  /* Waiting for you: a wax ripple leaves the ring every two seconds, like a seal asking to be pressed. */
+  .ring-halo {
+    animation: ring-halo 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+  @keyframes ring-halo {
+    0% {
+      opacity: 0.7;
+      transform: scale(1);
+    }
+    70%,
+    100% {
+      opacity: 0;
+      transform: scale(1.75);
+    }
+  }
+  /* The row around it breathes with the same beat, so the eye lands on the step, then on its button. */
+  [data-create='flow'] li[data-state='asking'][data-active] {
+    animation: step-call 2.2s var(--ease-in-out) infinite;
+  }
+  @keyframes step-call {
+    50% {
+      box-shadow: inset 0 0 0 1px rgb(255 122 92 / 0.9), 0 0 0 4px rgb(255 90 54 / 0.1);
+    }
+  }
+  /* Done: the ring closes, fills, and the check is drawn. */
+  .ring-done .ring-draw {
+    stroke-dasharray: 88 88;
+    stroke-dashoffset: 88;
+    animation: ring-close 700ms var(--ease-out) forwards;
+  }
+  @keyframes ring-close {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  .ring-done .ring-fill {
+    opacity: 0;
+    animation: ring-fill 260ms 650ms var(--ease-out) forwards;
+  }
+  @keyframes ring-fill {
+    to {
+      opacity: 1;
+    }
+  }
+  .ring-done .ring-tick {
+    stroke-dasharray: 14;
+    stroke-dashoffset: 14;
+    animation: ring-tick 300ms 820ms var(--ease-out) forwards;
+  }
+  @keyframes ring-tick {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  .progress[data-progress] > i {
+    animation: progress-glide 2.6s var(--ease-in-out) infinite;
+  }
+  @keyframes progress-glide {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(360%);
+    }
+  }
+  .fade-in {
+    animation: fade-in 180ms var(--ease-out) both;
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+}
+
+.dot-green {
+  background: var(--green);
+}
+
+/* The loading mark (seal-loader.tsx). Large (data-motion=form): the seal forming. The core lands, then each ring's arcs
+ * are drawn by a pen from the centre outwards, the print holds, fades, and forms again. Arcs carry pathLength="1", so
+ * one dash of length 1 is the whole arc at any size. Small (data-motion=turn, buttons and lines of text): too few pixels
+ * to draw a print, so its two rings turn once in opposite directions and settle back into register. */
+.seal-loader {
+  display: inline-block;
+  flex: none;
+  overflow: visible;
+}
+.seal-loader .sl-ring,
+.seal-loader .sl-core {
+  transform-box: view-box;
+  transform-origin: 100px 100px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .seal-loader[data-motion='turn'] .sl-ring {
+    animation: sl-turn 2.4s var(--ease-in-out) calc(var(--i) * 110ms) infinite both;
+  }
+  .seal-loader[data-motion='turn'] .sl-ring[data-ccw] {
+    animation-name: sl-turn-ccw;
+  }
+  @keyframes sl-turn {
+    0% {
+      transform: rotate(0deg);
+    }
+    58%,
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes sl-turn-ccw {
+    0% {
+      transform: rotate(0deg);
+    }
+    58%,
+    100% {
+      transform: rotate(-360deg);
+    }
+  }
+  .seal-loader[data-motion='form'] .sl-arc {
+    stroke-dasharray: 1 2; /* a gap longer than the arc, so no second dash (a round-cap dot) shows at its end */
+    animation: sl-draw 2.8s var(--ease-out) calc(var(--i) * 140ms + var(--j) * 50ms + 120ms) infinite both;
+  }
+  .seal-loader[data-motion='form'] .sl-core {
+    animation: sl-land 2.8s var(--ease-out) infinite both;
+  }
+  @keyframes sl-draw {
+    0% {
+      stroke-dashoffset: 1;
+      opacity: 0;
+    }
+    3% {
+      opacity: 1;
+    }
+    40%,
+    76% {
+      stroke-dashoffset: 0;
+      opacity: 1;
+    }
+    90%,
+    100% {
+      stroke-dashoffset: 0;
+      opacity: 0;
+    }
+  }
+  @keyframes sl-land {
+    0% {
+      transform: scale(0.2);
+      opacity: 0;
+    }
+    10%,
+    80% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    94%,
+    100% {
+      transform: scale(1);
+      opacity: 0;
+    }
+  }
+}
+
+/* Connect · desktop apps: a Night sketch of the app window that plays each setup step. Every part's resting state is
+ * its finished state; the keyframes only say where it comes from, so with animations off each step is simply shown. */
+.ds-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.ds-tabs button {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--raised-line);
+  color: var(--text-2);
+  font-size: 14px;
+  transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+}
+.ds-tabs button:hover {
+  color: var(--text);
+}
+.ds-tabs button[aria-selected='true'] {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--wax) 55%, transparent);
+  background: color-mix(in srgb, var(--wax) 12%, transparent);
+}
+.ds-window {
+  margin: 0;
+  border: 1px solid var(--raised-line);
+  border-radius: 16px;
+  background: var(--deep);
+  overflow: hidden;
+  box-shadow: 0 24px 60px -30px rgb(0 0 0 / 0.8);
+}
+.ds-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--raised-line);
+  background: var(--raised);
+  font-size: 12px;
+  color: var(--text-3);
+}
+.ds-bar i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgb(243 239 232 / 0.14);
+}
+.ds-bar span {
+  margin-left: 8px;
+}
+.ds-stage {
+  position: relative;
+  height: 236px;
+  padding: 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-2);
+  overflow: hidden;
+}
+.ds-progress {
+  display: flex;
+  gap: 4px;
+  padding: 0 18px 14px;
+}
+.ds-progress span {
+  flex: 1;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(243 239 232 / 0.1);
+  position: relative;
+  overflow: hidden;
+}
+.ds-progress span[data-done]::after,
+.ds-progress span[data-on]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--wax);
+  transform-origin: left;
+}
+.ds-window[data-playing] .ds-progress span[data-on]::after {
+  animation: ds-fill var(--ds-ms) linear both;
+}
+@keyframes ds-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+.ds-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ds-bubble {
+  max-width: 86%;
+  padding: 9px 12px;
+  border-radius: 14px;
+  margin: 0;
+}
+.ds-you {
+  align-self: flex-end;
+  background: color-mix(in srgb, var(--wax) 16%, var(--raised));
+  color: var(--text);
+  border-bottom-right-radius: 4px;
+}
+.ds-them {
+  align-self: flex-start;
+  background: var(--raised);
+  border: 1px solid var(--raised-line);
+  border-bottom-left-radius: 4px;
+}
+.ds-tool,
+.ds-ok,
+.ds-mono,
+.ds-path {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+}
+.ds-tool {
+  align-self: flex-start;
+  color: var(--text-3);
+  margin: 0;
+}
+.ds-ok {
+  color: var(--ok);
+  margin: 0;
+}
+.ds-ok::before {
+  content: '● ';
+}
+.ds-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 100%;
+}
+.ds-card {
+  width: min(100%, 380px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--raised-line);
+  background: var(--raised);
+}
+.ds-card-title {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+}
+.ds-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ds-label {
+  color: var(--text-3);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.ds-field {
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+  padding: 6px 9px;
+  border-radius: 8px;
+  border: 1px solid var(--raised-line);
+  background: var(--ground);
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ds-mask {
+  letter-spacing: 1px;
+  display: inline-block;
+}
+.ds-btn {
+  align-self: flex-end;
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--wax);
+  color: #1a0b06;
+  font-weight: 600;
+  font-size: 12.5px;
+}
+.ds-split {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 16px;
+  height: 100%;
+}
+.ds-side {
+  margin: 0;
+  padding: 0 12px 0 0;
+  list-style: none;
+  border-right: 1px solid var(--raised-line);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ds-side li {
+  padding: 6px 9px;
+  border-radius: 8px;
+}
+.ds-side li[data-pick] {
+  color: var(--text);
+  background: rgb(243 239 232 / 0.07);
+}
+.ds-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.ds-main .ds-btn {
+  align-self: flex-start;
+}
+.ds-main .ds-row {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--raised-line);
+  background: var(--raised);
+}
+.ds-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ds-editor .ds-mono {
+  margin: 0;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.ds-path {
+  margin: 0 0 8px;
+  color: var(--text-3);
+}
+.ds-ln {
+  display: inline-block;
+  width: 22px;
+  color: var(--text-3);
+}
+.ds-rise {
+  animation: ds-rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0s) both;
+}
+@keyframes ds-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.ds-type {
+  animation: ds-type 1.6s steps(28) var(--d, 0s) both;
+}
+@keyframes ds-type {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+/* A tap: the part waits dimmed, then is pressed in and settles to its resting look. */
+.ds-press {
+  animation: ds-press 0.6s ease-out var(--d, 0s) both;
+}
+.ds-rise.ds-press {
+  animation:
+    ds-rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0s) both,
+    ds-press 0.6s ease-out calc(var(--d, 0s) + 0.6s) both;
+}
+@keyframes ds-press {
+  0% {
+    opacity: 0.5;
+  }
+  45% {
+    opacity: 1;
+    transform: scale(0.94);
+  }
+}
+.ds-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ds-steps > li > button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  text-align: left;
+  color: var(--text-2);
+  transition: color 0.2s, background-color 0.2s;
+}
+.ds-steps > li > button:hover {
+  color: var(--text);
+}
+.ds-steps li[data-on] > button {
+  color: var(--text);
+  background: var(--raised);
+}
+.ds-n {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--raised-line);
+  font-size: 12px;
+}
+.ds-steps li[data-on] .ds-n {
+  border-color: var(--wax);
+  color: var(--wax-ink);
+}
+.ds-paste {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 6px 42px;
+  padding: 6px 6px 6px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--raised-line);
+  background: var(--ground);
+}
+.ds-paste code {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12.5px;
+  color: var(--text);
+}
+.ds-paste-label {
+  flex: none;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+.ds-fallback summary {
+  cursor: pointer;
+  font-size: 14px;
+}
+@media (max-width: 520px) {
+  .ds-stage {
+    height: 270px;
+    padding: 14px;
+  }
+  .ds-split {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .ds-side {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    border-right: 0;
+    padding: 0 0 8px;
+    border-bottom: 1px solid var(--raised-line);
+  }
+  .ds-paste {
+    margin-left: 0;
+  }
+}
+
+/* ---- Owner chat (components/chat.tsx) ---------------------------------------------------------- */
+/* The open tab: its title in full light on a short stroke of wax, sitting on the strip's hairline. */
+.chat-tab::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--wax);
+  opacity: 0;
+}
+.chat-tab[data-on]::after {
+  opacity: 1;
+}
+/* The composer stays on the bottom edge: over the phone's home bar, and over its keyboard (--keyboard, set from visualViewport).
+ * The ground fades in behind it so the words pass under cleanly. */
+.chat-composer-bar {
+  bottom: var(--keyboard, 0px);
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--ground) 72%, transparent);
+}
+.chat-composer textarea:focus-visible {
+  outline: none;
+}
+.chat-composer:has(textarea:focus-visible) {
+  border-color: var(--wax-ring);
+  box-shadow: 0 0 0 3px var(--wax-glow);
+}
+/* The line being written ends in a thin stroke of wax. */
+[data-writing] [data-markdown] > p:last-child::after,
+[data-writing] [data-markdown] > ul:last-child > li:last-child::after,
+[data-writing] [data-markdown] > ol:last-child > li:last-child::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.14em;
+  border-radius: 1px;
+  background: var(--wax);
+}
+.chat-switch {
+  appearance: none;
+  flex: none;
+  position: relative;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--ground-line);
+  cursor: pointer;
+  transition: background-color 120ms ease-out;
+}
+.chat-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text);
+  transition: transform 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.chat-switch:checked {
+  background: var(--wax);
+}
+.chat-switch:checked::after {
+  transform: translateX(14px);
+}
+.chat-switch:focus-visible {
+  outline: 2px solid var(--wax-ring);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chat-in {
+    animation: chat-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .chat-pop {
+    animation: chat-pop 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  [data-writing] [data-markdown] > p:last-child::after,
+  [data-writing] [data-markdown] > ul:last-child > li:last-child::after,
+  [data-writing] [data-markdown] > ol:last-child > li:last-child::after {
+    animation: chat-caret 1s ease-in-out infinite;
+  }
+  @keyframes chat-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  @keyframes chat-pop {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes chat-caret {
+    50% {
+      opacity: 0.25;
+    }
+  }
+}
+
+/* Verify steps (components/verify-steps.tsx): a track of five nodes joined by hairlines that fill as checks pass, and
+ * a scene per step. Every state's final look is plain style; the motion only adds to it, so reduced motion shows the
+ * finished scene. Keyframes read no custom property (tests/site/hero.test.ts). */
+.vtrack { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 0; list-style: none; }
+.vnode { position: relative; display: grid; justify-items: center; gap: 10px; color: var(--fg-3); text-align: center; }
+.vnode:not(:last-child)::before, .vnode:not(:last-child)::after { content: ''; position: absolute; top: 20px; left: calc(50% + 26px); right: calc(-50% + 26px); height: 1px; background: var(--line); }
+.vnode:not(:last-child)::after { background: var(--ok); transform-origin: left; transform: scaleX(0); transition: transform 600ms var(--ease-expo); }
+.vnode[data-state='pass']:not(:last-child)::after { transform: none; }
+.vnode-ring { position: relative; z-index: 1; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 9999px; border: 1px solid var(--line); background: var(--ground); transition: background 300ms var(--ease-out), border-color 300ms var(--ease-out), color 300ms var(--ease-out); }
+.vnode-icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.vnode-label { font-size: 13px; }
+.vnode[data-state='running'], .vnode[data-state='pass'], .vnode[data-state='fail'] { color: var(--fg); }
+.vnode[data-state='running'] .vnode-ring { border-color: var(--accent); color: var(--accent); }
+.vnode[data-state='pass'] .vnode-ring { border-color: var(--ok); background: var(--ok); color: var(--ground); }
+.vnode[data-state='pass'] .vnode-icon { stroke-width: 2.2; }
+.vnode[data-state='fail'] .vnode-ring { border-color: var(--danger); background: var(--danger); color: var(--ground); }
+.vnode[data-state='running'] .vnode-ring::after { content: ''; position: absolute; inset: -5px; border-radius: 9999px; border: 1px solid transparent; border-top-color: var(--accent); }
+
+.vscene { display: block; width: 100%; height: auto; max-height: 200px; overflow: visible; }
+.vs-paper { fill: var(--raised); stroke: var(--line); }
+.vs-bar { fill: var(--fg-3); opacity: 0.55; }
+.vs-scan { fill: var(--accent); opacity: 0; }
+.vs-mono { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 13px; fill: var(--fg-2); }
+.vs-label { font-size: 12px; fill: var(--fg-3); }
+.vs-strong { fill: var(--fg); }
+.vs-mid { text-anchor: middle; }
+.vs-ink { fill: var(--accent); }
+.vs-hole { fill: var(--raised); }
+.vs-ok-fill { fill: var(--ok); }
+.vs-sig { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.vs-rail { stroke: var(--line); stroke-width: 1.5; }
+.vs-tick { stroke: var(--line); }
+.vs-window { fill: var(--ok); opacity: 0.16; }
+.vs-node { fill: var(--raised); stroke: var(--fg-3); }
+.vs-node-to { stroke: var(--fg-2); }
+.vs-coin { transform: translateX(340px); }
+.vs-coin-face { fill: var(--accent); }
+.vs-coin-mark { font-size: 13px; font-weight: 600; fill: var(--ground); }
+.vs-bind { stroke: var(--ok); stroke-width: 2; }
+.vscene[data-state='pass'] .vs-node-to { stroke: var(--ok); }
+.vscene[data-state='fail'] .vs-sig, .vscene[data-state='fail'] .vs-bind { stroke: var(--danger); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .vnode[data-state='running'] .vnode-ring::after { animation: vs-spin 1s linear infinite; }
+  .vnode[data-state='pass'] .vnode-ring { animation: vs-land 420ms var(--ease-expo) both; }
+  .vnode-check { stroke-dasharray: 20; animation: vs-draw 380ms var(--ease-out) both; }
+  .vscene { animation: vs-in 360ms var(--ease-out) both; }
+  .vs-fade { animation: vs-in 420ms var(--ease-out) both; }
+  .vs-bar { animation: vs-type 520ms var(--ease-out) both; transform-box: fill-box; transform-origin: left; }
+  .vs-bar.vs-still { animation: none; }
+  .vscene[data-state='running'] .vs-scan { animation: vs-scan 1.1s var(--ease-in-out) infinite; }
+  .vs-sig { stroke-dasharray: 160; animation: vs-draw-long 900ms var(--ease-out) 650ms both; }
+  .vs-key { animation: vs-key 750ms var(--ease-expo) both; }
+  .vscene[data-state='running'] .vs-coin { animation: vs-coin 1.2s var(--ease-in-out) infinite; }
+  .vscene[data-state='pass'] .vs-coin { animation: vs-coin-once 600ms var(--ease-out) both; }
+  .vs-window { transform-box: fill-box; transform-origin: center; animation: vs-grow 600ms var(--ease-expo) both; }
+  .vs-pin { animation: vs-drop 500ms var(--ease-expo) 250ms both; }
+  .vs-bind { stroke-dasharray: 320; animation: vs-draw-bind 900ms var(--ease-out) both; }
+  .vscene[data-state='running'] .vs-bind { animation-iteration-count: infinite; }
+  .vs-owner { animation: vs-in 400ms var(--ease-out) 700ms both; }
+  @keyframes vs-spin { to { transform: rotate(360deg); } }
+  @keyframes vs-land { from { transform: scale(0.7); } to { transform: scale(1); } }
+  @keyframes vs-draw { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
+  @keyframes vs-draw-long { from { stroke-dashoffset: 160; } to { stroke-dashoffset: 0; } }
+  @keyframes vs-draw-bind { from { stroke-dashoffset: 320; } to { stroke-dashoffset: 0; } }
+  @keyframes vs-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes vs-type { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes vs-scan { 0% { opacity: 0; transform: translateY(0); } 15% { opacity: 0.35; } 85% { opacity: 0.35; } 100% { opacity: 0; transform: translateY(130px); } }
+  @keyframes vs-key { from { opacity: 0; transform: translateX(80px); } to { opacity: 1; transform: none; } }
+  @keyframes vs-coin { 0% { opacity: 0; transform: translateX(0); } 12% { opacity: 1; } 88% { opacity: 1; } 100% { opacity: 0; transform: translateX(340px); } }
+  @keyframes vs-coin-once { from { transform: translateX(170px); } to { transform: translateX(340px); } }
+  @keyframes vs-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes vs-drop { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
+}
+
+/* Less motion: no transitions, no animations, no smooth scroll. The verify progress line keeps its finished state,
+ * since it starts at scaleX(0). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0s !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  .progress[data-phase='done'] {
+    transform: none;
+    opacity: 0.5;
+  }
+
+  /* Waiting for you: no ripple and no glow; the wax ring breathes in place (opacity only), so the person's turn still reads as alive. */
+  .ring-asking .ring-draw {
+    animation: soft-deep 3.2s ease-in-out infinite !important;
+  }
+  @keyframes soft-deep {
+    50% {
+      opacity: 0.45;
+    }
+  }
+
+  /* The loading mark stays whole and its rings breathe in turn, so a wait still reads as a wait. */
+  .seal-loader .sl-ring {
+    animation: sl-breathe 2.4s ease-in-out calc(var(--i) * 240ms) infinite both !important;
+  }
+  @keyframes sl-breathe {
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  /* Route changes swap at once. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* ---- Route transitions -------------------------------------------------------------------------
+ * A short crossfade between pages: on a link navigation the page content (the <ViewTransition> in each customer
+ * layout, class `page`, lib/page-transition.ts) fades out in 120 ms while the new one fades in over 200 ms. The
+ * header is its own still group, so it never moves or blinks.
+ * Full document loads (into /draft, from an email) get the same fade where the browser supports it. Reduced motion
+ * turns all of it off (the block above). Opacity only, so it runs on the compositor.
+ */
+/* The page between the header and the footer, in every customer layout: at least the screen below the header (74px),
+   so a page that is still on its way (a redirect, a stream, a crossfade) leaves the footer below the fold instead of
+   drawing it right under the header. */
+.page-area {
+  min-height: calc(100dvh - 74px);
+}
+/* On the pane itself, not the sticky wrapper: a view-transition-name makes an element a backdrop root, which
+   would leave the pane's blur nothing to read. */
+.site-header .glass {
+  view-transition-name: site-header;
+}
+::view-transition-group(site-header),
+::view-transition-old(site-header),
+::view-transition-new(site-header) {
+  animation: none;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-group(.page),
+  ::view-transition-group(root) {
+    animation-duration: 200ms;
+    animation-timing-function: var(--ease-out);
+  }
+  ::view-transition-old(.page),
+  ::view-transition-old(root) {
+    animation-duration: 120ms;
+  }
+  ::view-transition-new(.page),
+  ::view-transition-new(root) {
+    animation-duration: 200ms;
+  }
+}
+
+/* Code samples (lib/highlight.ts): every token is escaped text in a span; the colours are the tokens above. */
+.code { color: var(--fg); tab-size: 2; }
+.code .tk-k { color: var(--code-keyword); }
+.code .tk-s { color: var(--code-string); }
+.code .tk-n { color: var(--code-number); }
+.code .tk-c { color: var(--code-comment); font-style: italic; }
+.code .tk-f { color: var(--code-call); font-weight: 500; }
+.code .tk-p { color: var(--code-key); }

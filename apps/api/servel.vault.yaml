@@ -1,0 +1,40 @@
+# The vault: agent keys, the sponsor key and the signing ledgers, apart from the api (see src/keys/vault.ts).
+# Deploy: servel deploy --verbose (with this file as servel.yaml in a copy of apps/api, or once servel takes a config path).
+# Internal only. The api reaches it as servel-agentenact-vault on the supabase infra network both services link to
+# (checked 2026-10-20: the api has no `network:` line and no aliases). servel still claims a public srvl.app route
+# for a deployment without a domain, so the vault itself answers 404 to anything that came through a proxy
+# (keys/rpc.ts); remove that route after the first deploy. Order: migrate 0016 → deploy the vault → set the api's
+# VAULT_TOKEN, deploy the api → remove KEYS_MASTER_SECRET from the api. For 0018: set the role's password and
+# VAULT_DATABASE_URL → migrate 0018 → redeploy the vault at once (the running one reads app.keys).
+build:
+    dockerfile: Dockerfile.vault
+name: agentenact-vault
+port: 8081
+healthcheck:
+    interval: 30s
+    path: /health
+    retries: 3
+    timeout: 5s
+    type: http
+infra:
+    - name: agentenact-supabase
+resources:
+    cpus: 0.25
+    memory: 256M
+update:
+    failure_action: rollback
+    order: stop-first
+env:
+    VAULT_PORT: "8081"
+    DATABASE_HOST: db
+    DATABASE_USER: postgres
+    DATABASE_NAME: postgres
+# Secrets (set by Kerem with `servel secrets set`, never here):
+#   KEYS_MASTER_SECRET  moved from the api, same value (existing sealed keys must still open)
+#   VAULT_TOKEN         >= 32 chars, the same value the api gets
+#   VAULT_DATABASE_URL  postgres://agentenact_vault:<password>@db:5432/postgres (migration 0018; the password is set
+#                       out of band with ALTER ROLE agentenact_vault LOGIN PASSWORD). Wins over the linked postgres URL,
+#                       which cannot read keyvault.* once 0018 is applied; entrypoint.sh drops that linked URL anyway.
+#                       Boot logs vault_isolation: isolated must be true (needs 0020 and the api on agentenact_api).
+#   SPONSOR_SECRET      moved from the api, same value (migration 0019 first). vault_listening names its public key;
+#                       then set the api's SPONSOR_PUBLIC_KEY to it, deploy the api, remove SPONSOR_SECRET from the api.

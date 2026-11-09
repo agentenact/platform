@@ -1,0 +1,64 @@
+build:
+    dockerfile: Dockerfile
+domain: api.agentenact.io
+# Replicas (src/db/replica.ts, migration 0027): every task serves as soon as it has joined, next to the old ones; one of
+# them (the leader) runs the scheduler and the sweeps. Only the first rollout over the single-replica version waits for
+# that version's handover (up to HANDOVER_WAIT_MS, 240 s): start_period covers it, so the healthcheck never kills a task
+# that is still waiting. interval 10s: a new task is seen healthy at most 10 s after it serves (servel has no
+# start_interval: `servel validate` ignores it).
+healthcheck:
+    interval: 10s
+    path: /health
+    retries: 3
+    start_period: 240s
+    timeout: 5s
+    type: http
+infra:
+    - name: agentenact-supabase
+name: agentenact-api
+port: 8080
+# Two tasks, so a deploy (start-first, one task at a time) always has one serving. Both build and run on KN-MANAGER.
+replicas: 2
+resources:
+    cpus: 1
+    # The isolate pool's children sit at ~94 MB idle each and retire above 250 MB RSS, on top of the api: never below 768M.
+    memory: 1G
+# The drain serves 20 s more (lifecycle LAME_DUCK_MS, Traefik's 15 s refresh), then waits up to 120 s for a settling paid
+# call, a provision start or an open chat stream (CRITICAL_GRACE_MS) plus 4 bounded steps; Docker's default 10 s would
+# SIGKILL it first. Must stay below servel's convergence timeout (default 5m).
+stop_grace_period: 170s
+update:
+    failure_action: rollback
+    order: start-first
+env:
+    # The one web app since the cutover (2026-10-28): email links.
+    APP_ORIGIN: https://agentenact.io
+    # Extra web origins the api accepts (docs/plans/2026-10-26-unify-site-and-panel.md): CORS reflects them and passkey
+    # WebAuthn accepts them in clientDataJSON (only an off-chain check; RP_ID stays agentenact.io). app.agentenact.io only
+    # 308s to agentenact.io, so it is no longer an origin.
+    APP_ORIGINS: https://staging.agentenact.io
+    RP_ID: agentenact.io
+    PUBLIC_BASE_URL: https://agentenact.io
+    PORT: "8080"
+    SUPABASE_URL: https://supabase.agentenact.io
+    # Public by design (Kong's anon key). Pinned here because the value `servel link` injects
+    # does not match what the running Kong accepts (servel drift, 2026-10-05).
+    SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjIxMDY3NjYxNTEsImlhdCI6MTc5MTE0Njk1MSwiaXNzIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiJ9.cp1pDWGSbFUKnBCg7oRWYSr_VEVX0MJ1_3d1D1p1rbc
+    # Local fallbacks only: in the container entrypoint.sh passes API_DATABASE_URL (secret, agentenact_api, migration 0020)
+    # and drops these along with every credential the supabase link injects.
+    DATABASE_HOST: db
+    DATABASE_USER: postgres
+    DATABASE_NAME: postgres
+    MAIL_FROM: AgentEnact <agents@agentenact.io>
+    # Spec §6 manual kill switch: "1" stops the scheduler and owner chat (P3b: paid services). Flip with servel env + restart.
+    RUNTIME_KILL_SWITCH: "0"
+    # Bun inside a container reports the HOST's core count, so the default pool (min(4, cores)) would be 4 children at ~94 MB idle each. Pin it.
+    ISOLATE_POOL_SIZE: "2"
+    # The vault (servel.vault.yaml) holds the agent keys; the api only calls it. Needs the secret VAULT_TOKEN (>= 32 chars,
+    # the vault's value, set by Kerem with `servel secrets set`). KEYS_MASTER_SECRET is no longer read by the api: remove it.
+    VAULT_URL: http://servel-agentenact-vault:8081
+    # Sponsor key move: once the vault holds SPONSOR_SECRET (its boot log names the sponsor), set this to that G-address
+    # (public, not a secret) and the api asks the vault to sign every sponsor tx; then remove SPONSOR_SECRET from the api.
+    SPONSOR_PUBLIC_KEY: GAYTGRAY4MHSZGEROVQKXHBWLI3LAB63MRQIMGPNK23HM6V7R65PYPFS
+    # PANEL_SECRET (optional, set by Kerem with `servel secrets set`, never here): lets the web panel forward the visitor's IP in x-client-ip.
+    # Unset: the header is never trusted and every limit keys on the address this api sees.

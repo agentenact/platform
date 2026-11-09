@@ -1,0 +1,41 @@
+build:
+    dockerfile: Dockerfile
+healthcheck:
+    interval: 30s
+    path: /health
+    # No domain means servel cannot infer the probe port; pin it (deploy failed with "port must be positive, got 0").
+    port: 8080
+    retries: 3
+    timeout: 5s
+    type: http
+name: agentenact-indexer
+port: 8080
+resources:
+    cpus: 0.5
+    memory: 256M
+update:
+    failure_action: rollback
+    order: stop-first
+# No domain (internal only). Linked to the Supabase stack for its network (Kerem, 2026-10-13). The link also injects the
+# superuser password variables; the code never reads them (structural env invariant), entrypoint.sh drops them
+# (allowlist) before the process starts, and it connects only as discovery_indexer via the INDEXER_DATABASE_URL secret.
+infra:
+    - name: agentenact-supabase
+env:
+    PUBLIC_BASE_URL: https://agentenact.io
+    PORT: "8080"
+    # The cloud sponsor's public key (the api's startup log field "sponsor"); its payments never count.
+    INDEXER_SPONSORS: GAYTGRAY4MHSZGEROVQKXHBWLI3LAB63MRQIMGPNK23HM6V7R65PYPFS
+# Deploy notes (task 8):
+# - Stop-first is REQUIRED (update.order above): the single-instance advisory lock is held by the running process, so a
+#   start-first rollout would be refused by the lock. Never switch to start-first or run two replicas.
+# - INDEXER_DATABASE_URL must be a DIRECT session connection to Postgres (the indexer role), never a transaction-mode
+#   pooler: the lock lives on that session. If the lock is lost the process exits 1 and servel restarts it.
+# - After a chain reset the process logs { event: "indexer_halted", reason: "chain_reset" }, writes discovery.meta
+#   key 'halted', and /health reports "halted". The halt is a persisted latch: every restart reads it, logs
+#   indexer_halted again, and runs NEITHER registry, events NOR payments (an unreadable marker counts as set).
+#   Only an operator clears it, after checking the chain by hand:
+#     delete from discovery.meta where key = 'halted';   -- then restart the service
+# - Startup is fail-closed: nothing starts until the first registry tick succeeds (it is retried every 30 s), and
+#   payments waits for one successful events tick.
+# - Lock loss is noticed at the next stage tick, so one long payments run can still write briefly after it.

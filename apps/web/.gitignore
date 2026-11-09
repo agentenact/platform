@@ -1,0 +1,15 @@
+node_modules/
+.next/
+.servel/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+next-env.d.ts
+
+# playwright
+test-results/
+playwright-report/
+
+# scripts/build-verifier.ts writes its entry here for a moment
+.verifier-entry-*.ts

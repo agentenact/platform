@@ -1,0 +1,17 @@
+{
+  "name": "ai-sdk",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "4.0.71",
+    "ai": "7.0.127",
+    "zod": "4.6.5"
+  }
+}

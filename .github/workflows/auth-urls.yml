@@ -1,0 +1,95 @@
+name: Auth redirect URLs
+
+# The self-hosted Supabase's auth service (GoTrue) only sends magic links to allowed URLs.
+# The wanted values live in .github/auth-urls.env: a push that changes it applies them, and an empty value
+# leaves that variable as it is (so an all-empty file only prints what is set). By hand, the inputs win over the
+# file. Values are URLs, never secrets.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/auth-urls.env'
+      - '.github/workflows/auth-urls.yml'
+  workflow_dispatch:
+    inputs:
+      allow_list:
+        description: New GOTRUE_URI_ALLOW_LIST, comma-separated (empty = take it from .github/auth-urls.env)
+        type: string
+        required: false
+      site_url:
+        description: New GOTRUE_SITE_URL (empty = take it from .github/auth-urls.env)
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: auth-urls
+  cancel-in-progress: true # an apply is one quick call; a hung run must not block the next
+
+env:
+  INFRA: agentenact-supabase
+
+jobs:
+  auth-urls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read the wanted values
+        env:
+          IN_ALLOW_LIST: ${{ inputs.allow_list }}
+          IN_SITE_URL: ${{ inputs.site_url }}
+        run: |
+          ALLOW_LIST= SITE_URL=
+          . .github/auth-urls.env
+          ALLOW_LIST=${IN_ALLOW_LIST:-$ALLOW_LIST}
+          SITE_URL=${IN_SITE_URL:-$SITE_URL}
+          echo "ALLOW_LIST=$ALLOW_LIST" >> "$GITHUB_ENV"
+          echo "SITE_URL=$SITE_URL" >> "$GITHUB_ENV"
+          echo "wanted: ALLOW_LIST=${ALLOW_LIST:-(leave)} SITE_URL=${SITE_URL:-(leave)}"
+
+      - name: Install servel (client only)
+        run: |
+          curl -fsSL https://servel.dev/install.sh -o "$RUNNER_TEMP/servel-install.sh"
+          bash "$RUNNER_TEMP/servel-install.sh" --client </dev/null
+          servel version
+
+      # Same key and comment as the site's deploy, so the server maps it to the user that already exists.
+      - name: Load the deploy SSH key
+        env:
+          SERVEL_SSH_KEY: ${{ secrets.SERVEL_SSH_KEY }}
+        run: |
+          mkdir -p -m 700 ~/.ssh
+          printf '%s\n' "$SERVEL_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "$(ssh-keygen -y -f ~/.ssh/id_ed25519) github-actions-deploy-site" > ~/.ssh/id_ed25519.pub
+
+      - name: Join the server
+        run: servel access join 45.136.16.42 --name srvl
+
+      # Only these two variables are read: the auth service's other env holds secrets and must never reach the log.
+      - name: Show the current values
+        run: |
+          for v in GOTRUE_URI_ALLOW_LIST GOTRUE_SITE_URL; do
+            echo "$v=$(timeout 90 servel exec "@$INFRA" --service auth --remote srvl --timeout 60s printenv "$v" </dev/null || echo "(could not read)")"
+          done
+
+      - name: Update
+        if: env.ALLOW_LIST != '' || env.SITE_URL != ''
+        run: |
+          args=()
+          [ -n "$ALLOW_LIST" ] && args+=(--env "GOTRUE_URI_ALLOW_LIST=$ALLOW_LIST")
+          [ -n "$SITE_URL" ] && args+=(--env "GOTRUE_SITE_URL=$SITE_URL")
+          servel infra update "$INFRA" --service auth --remote srvl "${args[@]}"
+
+      - name: Show the new values
+        if: env.ALLOW_LIST != '' || env.SITE_URL != ''
+        run: |
+          sleep 20
+          for v in GOTRUE_URI_ALLOW_LIST GOTRUE_SITE_URL; do
+            echo "$v=$(timeout 90 servel exec "@$INFRA" --service auth --remote srvl --timeout 60s printenv "$v" </dev/null || echo "(could not read)")"
+          done

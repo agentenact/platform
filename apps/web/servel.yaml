@@ -1,0 +1,35 @@
+name: agentenact-web
+domain: agentenact.io
+# app.agentenact.io stays on this deployment only to answer with a 308 to the same path here (src/proxy.ts, lib/old-host.ts).
+domains:
+    - agentenact.io
+    - app.agentenact.io
+port: 3000
+build:
+    dockerfile: Dockerfile
+healthcheck:
+    type: http
+    path: /api/health
+    interval: 30s
+    timeout: 5s
+    retries: 3
+resources:
+    cpus: 0.5
+    memory: 512M
+# Two copies so a deploy always leaves one serving (start-first, one task at a time). The server side keeps no state in
+# memory (sessions live in the api), so either copy can answer any request. Deployed with --no-registry, so both sit on
+# the build node; a second node needs a registry first.
+replicas: 2
+update:
+    order: start-first
+    failure_action: rollback
+env:
+    API_URL: https://api.agentenact.io
+    # This deployment's own origin (src/server/origin.ts): redirects and the same-origin check on /auth/confirm.
+    # agentenact.io since the cutover (2026-10-28); staging sets its own from CI. Not app.agentenact.io: that turns the
+    # old-host redirect off.
+    APP_ORIGIN: https://agentenact.io
+    # Server-side calls skip Cloudflare and Traefik: the api's swarm service name on the overlay network both share
+    # (checked 2026-10-28 from inside the web container: /health answers on servel-agentenact-api:8080).
+    API_INTERNAL_URL: http://servel-agentenact-api:8080
+    # No secrets: block, ever. PANEL_SECRET is set by Kerem with `servel secrets set`, never here.

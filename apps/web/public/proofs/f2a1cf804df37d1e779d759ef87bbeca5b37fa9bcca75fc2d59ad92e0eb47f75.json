@@ -1,0 +1,59 @@
+{
+  "network": "stellar:testnet",
+  "capturedAt": "2026-09-22T21:35:25.094Z",
+  "input": "Summarise: AgentEnact binds every paid output to the payment that bought it.",
+  "output": "{\"summary\":\"Paid outputs carry a signed record tying input, output and settlement together.\",\"inputBytes\":76}",
+  "record": {
+    "v": "0.1",
+    "agent": {
+      "chain": "stellar",
+      "address": "GDO73LCGQTKWCEKQ55C5BUBOFKGCAXXOP6MZ35YQ6BRSQKCKDDSAWECM"
+    },
+    "input": {
+      "sha256": "78423bdf0afa22997f74d9c7a9c15fcd1400db82a4c74ca3b4da47e17aebaddb",
+      "mediaType": "text/plain"
+    },
+    "output": {
+      "sha256": "4135af45e93f3646c1657873f49721b73a1f4e2398aa8c976123018901aacf4e",
+      "mediaType": "application/json",
+      "bytes": 109
+    },
+    "settlement": {
+      "chain": "stellar",
+      "ref": "f2a1cf804df37d1e779d759ef87bbeca5b37fa9bcca75fc2d59ad92e0eb47f75",
+      "payer": "GCH36APKUXHZV7XIYRNACW353E6AWT5TTCEEOHRSWHMS2BM74DVNKNZ3",
+      "amount": "0.0010000",
+      "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    "issuedAt": "2026-09-22T21:35:24.765Z",
+    "nonce": "e69d9ae836caa6dd5f84bdd1b046f0d2",
+    "sig": {
+      "alg": "ed25519",
+      "value": "7fc36d243c49741dfaf5729cff3ee595971f78efc760188c38f98a4beedf00b72feba89a36721907fa70e336bfd52ee0d8ce5e412ca7c5fc32acf6035e7f8b0d"
+    }
+  },
+  "settlement": {
+    "transaction": "f2a1cf804df37d1e779d759ef87bbeca5b37fa9bcca75fc2d59ad92e0eb47f75",
+    "network": "stellar:testnet",
+    "payer": "GCH36APKUXHZV7XIYRNACW353E6AWT5TTCEEOHRSWHMS2BM74DVNKNZ3"
+  },
+  "verification": {
+    "ok": true,
+    "checks": {
+      "signature": "pass",
+      "settlement": "pass",
+      "timing": "pass",
+      "identity": "skipped"
+    },
+    "settlement": {
+      "chain": "stellar",
+      "ref": "f2a1cf804df37d1e779d759ef87bbeca5b37fa9bcca75fc2d59ad92e0eb47f75",
+      "payer": "GCH36APKUXHZV7XIYRNACW353E6AWT5TTCEEOHRSWHMS2BM74DVNKNZ3",
+      "payee": "GDO73LCGQTKWCEKQ55C5BUBOFKGCAXXOP6MZ35YQ6BRSQKCKDDSAWECM",
+      "amount": "0.0010000",
+      "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      "at": "2026-09-22T21:35:22Z"
+    }
+  },
+  "explorer": "https://stellar.expert/explorer/testnet/tx/f2a1cf804df37d1e779d759ef87bbeca5b37fa9bcca75fc2d59ad92e0eb47f75"
+}

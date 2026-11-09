@@ -1,0 +1,10 @@
+{
+  "name": "passkey-spike",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "passkey-kit": "^0.19.1",
+    "passkey-kit-sdk": "^0.9.0",
+    "smart-account-kit": "^0.8.0"
+  }
+}

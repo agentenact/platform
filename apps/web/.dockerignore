@@ -1,0 +1,9 @@
+node_modules
+.next
+tests
+.servel/
+.env
+.env.*
+*.md
+# Dev-only: reads apps/api source, which is not in this build context.
+scripts/sync-templates.ts
