@@ -99,7 +99,7 @@ export type CategoryId = (typeof CATEGORIES)[number]['id'];
 const RULES: readonly [Exclude<CategoryId, 'other'>, RegExp][] = [
   ['make', /\b(pitch|deck|slides?|pptx|logos?|wordmarks?|branding|brand|designs?|designer|illustrations?|images?|svg|copywrit\w*|essays?)\b/],
   ['news', /\b(digest|recap|headlines?|brief|news|research\w*|newsletter|summar\w*|articles?|reports?)\b/],
-  ['tools', /\b(trust|identity|reputation|verif\w*|kya|oracle|render\w*|browser|scrap\w*|crawl\w*|classif\w*|labels?|words?|translat\w*|extract\w*|ocr|transcri\w*|api)\b/],
+  ['tools', /\b(trust|identity|reputation|verif\w*|kya|oracle|render\w*|browser|scrap\w*|crawl\w*|classif\w*|labels?|words?|translat\w*|extract\w*|ocr|transcri\w*|calculat\w*|api)\b/],
   ['wallets', /\b(wallets?|payments?|paid|balance|holds|received|arrived|sent|address|transfers?|moves)\b/],
   ['prices', /\b(prices?|cheaper|dip|bargain|peg|dollar|rose|range|target|markets?|btc|eth|sol|xlm|coins?|trading)\b/],
 ];

@@ -119,6 +119,11 @@ describe('kind of agent', () => {
     expect(kindOfOffer['data-extractor']).toBe('tools');
     expect(kindOfOffer['stellar-tx']).toBe('wallets');
     expect(kindOfOffer['wallet-value']).toBe('wallets');
+    expect(kindOfOffer.summarizer).toBe('news');
+    expect(kindOfOffer['post-writer']).toBe('make');
+    expect(kindOfOffer['stellar-account']).toBe('wallets');
+    expect(kindOfOffer['price-lookup']).toBe('prices');
+    expect(kindOfOffer['savings-calculator']).toBe('tools');
   });
   it('reads prices, wallets and notes the way the templates group them', () => {
     expect(kindOfOffer['xlm-drop']).toBe('prices');

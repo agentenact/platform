@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { HOUSE_EMAIL_REGEX, NOT_COMMUNITY_EMAIL_REGEX, TEST_EMAIL_REGEX } from '../../api/src/test-accounts';
 import { bannedWord } from '../../api/src/builder/words';
 import { parseSpec } from '../../api/src/specs/schema';
-import { BUYERS, EXTRAS, houseAgents, OFFERS } from '../scripts/house-agents/services';
+import { BUYERS, EXTRAS, HOUSE_ACCOUNTS, houseAgents, OFFERS } from '../scripts/house-agents/services';
 import { TEMPLATES } from '../src/lib/templates';
 
 describe('house agents', () => {
@@ -56,9 +56,13 @@ describe('house agents', () => {
     for (const a of houseAgents()) expect(a.spec.hire_targets).toBeUndefined();
   });
 
-  test('each agent has its own account: counted in the community, never hit by the bulk test pause', () => {
+  test('each agent has its own account unless it shares one, within the api limit: counted in the community, never hit by the bulk test pause', () => {
     const emails = houseAgents().map((a) => a.email);
-    expect(new Set(emails).size).toBe(emails.length);
+    const shared = houseAgents().filter((a) => HOUSE_ACCOUNTS[a.templateId]).map((a) => a.email);
+    const own = emails.filter((e) => !shared.includes(e));
+    expect(new Set(own).size).toBe(own.length);
+    for (const e of new Set(shared)) expect(emails.filter((x) => x === e).length).toBeLessThanOrEqual(3);
+    for (const id of Object.keys(HOUSE_ACCOUNTS)) expect(EXTRAS.map((x) => x.id)).toContain(id);
     for (const e of emails) {
       expect([e, new RegExp(HOUSE_EMAIL_REGEX).test(e)]).toEqual([e, true]);
       expect([e, new RegExp(NOT_COMMUNITY_EMAIL_REGEX).test(e)]).toEqual([e, false]);
