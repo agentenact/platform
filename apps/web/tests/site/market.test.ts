@@ -124,6 +124,11 @@ describe('kind of agent', () => {
     expect(kindOfOffer['stellar-account']).toBe('wallets');
     expect(kindOfOffer['price-lookup']).toBe('prices');
     expect(kindOfOffer['savings-calculator']).toBe('tools');
+    expect(kindOfOffer['headline-writer']).toBe('news');
+    expect(kindOfOffer['text-classifier']).toBe('tools');
+    expect(kindOfOffer['coin-compare']).toBe('prices');
+    expect(kindOfOffer['eurc-price']).toBe('prices');
+    expect(kindOfOffer['trustline-check']).toBe('wallets');
   });
   it('reads prices, wallets and notes the way the templates group them', () => {
     expect(kindOfOffer['xlm-drop']).toBe('prices');
