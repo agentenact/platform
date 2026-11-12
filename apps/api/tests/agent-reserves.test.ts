@@ -432,6 +432,15 @@ describe('every agent pays its own way (FEE_MODEL=agent)', () => {
       expect(await row(a.agentId)).toMatchObject({ status: 'active', reserve_state: 'self_paid', pays_own_fees: true, repay: String(repay) });
     });
 
+    it('a birth that cost the sponsor more than the cap is paid back up to the cap, and the agent is still resumed', async () => {
+      const a = await agentWithKey({ reserve: 'due', txs: { account: h('d'), register: h('e'), bind: h('f') } });
+      const { chain, sent, quoted } = fakeChain({ account: { sponsored: true, usdc: 20_000_000n, xlm: 0n }, fees: { [h('d')]: 400n, [h('e')]: 14_326_686n, [h('f')]: 18_882n } });
+      expect((await run(chain, a.agentId)).handed).toBe(1);
+      expect(quoted).toEqual([RESERVE_STROOPS + FLOAT_STROOPS + MAX_REPAY_STROOPS]);
+      expect(reserveShape(sent[0]!)).toMatchObject({ kind: 'handover', repayStroops: MAX_REPAY_STROOPS });
+      expect(await row(a.agentId)).toMatchObject({ status: 'active', reserve_state: 'self_paid', repay: String(MAX_REPAY_STROOPS) });
+    });
+
     it('an agent its owner paused stays paused when it is funded', async () => {
       const a = await agentWithKey({ reserve: 'due', waits: false });
       const { chain } = fakeChain({ account: { sponsored: true, usdc: 20_000_000n, xlm: 0n } });

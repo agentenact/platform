@@ -132,7 +132,12 @@ export function createReserves(d: {
     const [r] = (await sql`select provision_state->'attempts'->-1->'txs' as txs from app.agents where id = ${agentId}`) as { txs: Record<string, string> | null }[];
     let total = 0n;
     for (const hash of new Set(Object.values(r?.txs ?? {}))) total += await chain.feeCharged(hash);
-    if (total > MAX_REPAY_STROOPS) throw fail('repay_above_cap');
+    // A birth caught in a Soroban rent spike (2026-11-12: a 1.43 XLM register, agent 174) would never hand over: the
+    // agent pays back up to the cap and the platform carries the rest, as it does for failed attempts.
+    if (total > MAX_REPAY_STROOPS) {
+      log({ event: 'agent_repay_capped', agent: agentId, fronted: total.toString(), repay: MAX_REPAY_STROOPS.toString() });
+      return MAX_REPAY_STROOPS;
+    }
     return total;
   }
 
