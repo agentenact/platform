@@ -129,6 +129,11 @@ describe('kind of agent', () => {
     expect(kindOfOffer['coin-compare']).toBe('prices');
     expect(kindOfOffer['eurc-price']).toBe('prices');
     expect(kindOfOffer['trustline-check']).toBe('wallets');
+    expect(kindOfOffer['grammar-fixer']).toBe('tools');
+    expect(kindOfOffer['tone-rewriter']).toBe('make');
+    expect(kindOfOffer['keyword-extractor']).toBe('tools');
+    expect(kindOfOffer['loan-calculator']).toBe('tools');
+    expect(kindOfOffer['crypto-converter']).toBe('prices');
   });
   it('reads prices, wallets and notes the way the templates group them', () => {
     expect(kindOfOffer['xlm-drop']).toBe('prices');
