@@ -255,6 +255,9 @@ try {
   const page = ctx.pages()[0] ?? (await ctx.newPage());
   const passkey = await authenticator(page, ctx);
   for (const id of ABANDONED) {
+    // Gone already (the usual case): a read costs nothing, while every DELETE counts against the account's 30 panel writes an hour.
+    const now = await api('kerem+house@noras.tech', `/api/agents/${id}`);
+    if (now.status === 404 || now.json.status === 'revoked') continue;
     const r = await api('kerem+house@noras.tech', `/api/agents/${id}`, { method: 'DELETE' });
     if (r.status !== 202) throw new Error(`could not remove ${id}: ${r.status} ${String(r.json.error ?? '')}`);
   }
