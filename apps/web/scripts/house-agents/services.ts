@@ -377,6 +377,14 @@ export const OFFERS: Record<string, Offer> = {
     output: obj({ exists: bool('Whether the chain has seen this wallet'), balances: list(obj({ asset: str('The asset'), amount: str('The amount') }), 5) }),
     task: 'Make exactly one wallet_balance call with that chain and address. Report only what it returns.',
   },
+  // Kerem, 2026-11-18: one more, on the ledger account's last slot.
+  'evm-balance': {
+    slug: 'evm-balance', price: '0.01', tools: ['wallet_balance'],
+    description: 'What a wallet holds right now on Ethereum, Base, Arbitrum, Optimism, Polygon or Celo: the native coin, USDC and USDT.',
+    input: obj({ address, chain: str('Which chain', { enum: ['ethereum', 'base', 'arbitrum', 'optimism', 'polygon', 'celo'] }) }),
+    output: obj({ exists: bool('Whether the chain has seen this wallet'), balances: list(obj({ asset: str('The asset'), amount: str('The amount') }), 5) }),
+    task: 'Make exactly one wallet_balance call with that chain and address. Report only what it returns.',
+  },
 };
 
 /**
@@ -409,6 +417,7 @@ export const EXTRAS: readonly { id: string; title: string }[] = [
   { id: 'tip-splitter', title: 'Tip splitter' },
   { id: 'btc-balance', title: 'BTC balance' },
   { id: 'testnet-balance', title: 'Testnet balance' },
+  { id: 'evm-balance', title: 'EVM balance' },
 ];
 
 /**
@@ -436,6 +445,7 @@ export const HOUSE_ACCOUNTS: Readonly<Record<string, string>> = {
   'tip-splitter': 'numbers',
   'btc-balance': 'ledger',
   'testnet-balance': 'ledger',
+  'evm-balance': 'ledger',
 };
 
 /** Each template has an account of its own (Kerem, 2026-11-04). wallet-watch was made first, on the plain address, and stays there. */

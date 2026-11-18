@@ -139,6 +139,7 @@ describe('kind of agent', () => {
     expect(kindOfOffer['tip-splitter']).toBe('tools');
     expect(kindOfOffer['btc-balance']).toBe('wallets');
     expect(kindOfOffer['testnet-balance']).toBe('wallets');
+    expect(kindOfOffer['evm-balance']).toBe('wallets');
   });
   it('reads prices, wallets and notes the way the templates group them', () => {
     expect(kindOfOffer['xlm-drop']).toBe('prices');
