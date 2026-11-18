@@ -460,44 +460,50 @@ export interface HouseAgent {
 }
 
 /**
- * House agents that also buy (Kerem, 2026-11-06: "houselar birbirini kiralayabilmeli"). On a schedule each one hires two other
- * house agents' checks through hire_agent, paying from its own testnet USDC (the sponsor's testnet credit tops it up), and
- * writes a short note on what they answered. Every hire is a real x402 payment with an Enactment Record. Both sides are the
- * operator's own agents, so this is demo traffic between our accounts, not outside demand.
- * Cost: 8 buyers x 8 runs a day x (one mission + two paid service runs): roughly $1-2 of model use and 1.28 testnet USDC a day.
+ * House agents that also buy (Kerem, 2026-11-06: "houselar birbirini kiralayabilmeli"). Each one hires two other house agents'
+ * checks through hire_agent, paying from its own testnet USDC (the sponsor's testnet credit tops it up), and writes a short
+ * note on what they answered. Every hire is a real x402 payment with an Enactment Record. Both sides are the operator's own
+ * agents, so this is demo traffic between our accounts, not outside demand.
+ * Each purchase has a schedule of its own (Kerem, 2026-11-18: the two sellers of one buyer showed the very same sales): the
+ * first every 3 hours (8 a day), the second every 4 or 6 hours (6 or 4 a day), so the two sellers' numbers drift apart.
+ * Cost: 8 buyers x 12-14 one-hire missions a day: roughly $1.5-3 of model use and about 1.04 testnet USDC a day.
  */
 export interface Purchase {
   /** The seller's template id (its OFFERS entry names the service). */
   from: string;
   input: Record<string, unknown>;
+  /** When this purchase runs (UTC). */
+  cron: string;
 }
-export const BUYERS: Record<string, { cron: string; buys: [Purchase, Purchase] }> = {
-  'market-morning': { cron: '5 */3 * * *', buys: [{ from: 'morning-prices', input: {} }, { from: 'big-move', input: { coin: 'XLM', move_pct: 5 } }] },
-  'daily-digest': { cron: '20 */3 * * *', buys: [{ from: 'xlm-drop', input: { drop_pct: 5 } }, { from: 'usdc-peg', input: { floor: 0.99 } }] },
-  'weekly-recap': { cron: '35 */3 * * *', buys: [{ from: 'coin-crash', input: { coin: 'BTC', drop_pct: 5 } }, { from: 'coin-jump', input: { coin: 'ETH', rise_pct: 5 } }] },
-  'agent-economy': { cron: '50 */3 * * *', buys: [{ from: 'stablecoin-peg', input: { floor: 0.99 } }, { from: 'price-target', input: { target: 0.5 } }] },
+export const BUYERS: Record<string, { buys: [Purchase, Purchase] }> = {
+  'market-morning': { buys: [{ from: 'morning-prices', input: {}, cron: '5 */3 * * *' }, { from: 'big-move', input: { coin: 'XLM', move_pct: 5 }, cron: '12 1-21/4 * * *' }] },
+  'daily-digest': { buys: [{ from: 'xlm-drop', input: { drop_pct: 5 }, cron: '20 */3 * * *' }, { from: 'usdc-peg', input: { floor: 0.99 }, cron: '27 2-20/6 * * *' }] },
+  'weekly-recap': { buys: [{ from: 'coin-crash', input: { coin: 'BTC', drop_pct: 5 }, cron: '35 */3 * * *' }, { from: 'coin-jump', input: { coin: 'ETH', rise_pct: 5 }, cron: '42 2-22/4 * * *' }] },
+  'agent-economy': { buys: [{ from: 'stablecoin-peg', input: { floor: 0.99 }, cron: '50 */3 * * *' }, { from: 'price-target', input: { target: 0.5 }, cron: '57 4-22/6 * * *' }] },
   // Kerem, 2026-11-10: the new sellers get bought too. The account read is Circle's USDC issuer on mainnet, read only.
   summarizer: {
-    cron: '0 1-22/3 * * *',
     buys: [
-      { from: 'stellar-account', input: { address: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN', network: 'mainnet' } },
-      { from: 'price-lookup', input: { ids: ['stellar', 'bitcoin', 'ethereum'] } },
+      { from: 'stellar-account', input: { address: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN', network: 'mainnet' }, cron: '0 1-22/3 * * *' },
+      { from: 'price-lookup', input: { ids: ['stellar', 'bitcoin', 'ethereum'] }, cron: '7 3-23/4 * * *' },
     ],
   },
   // Kerem, 2026-11-12: the third batch is bought too.
   'headline-writer': {
-    cron: '30 2-23/3 * * *',
-    buys: [{ from: 'coin-compare', input: { first: 'BTC', second: 'ETH' } }, { from: 'eurc-price', input: {} }],
+    buys: [{ from: 'coin-compare', input: { first: 'BTC', second: 'ETH' }, cron: '30 2-23/3 * * *' }, { from: 'eurc-price', input: {}, cron: '37 5-23/6 * * *' }],
   },
   // Kerem, 2026-11-17: the fourth batch is bought too.
   'tone-rewriter': {
-    cron: '15 1-22/3 * * *',
-    buys: [{ from: 'crypto-converter', input: { coin: 'XLM', amount: 100 } }, { from: 'loan-calculator', input: { amount: 10000, rate_pct: 5, years: 3 } }],
+    buys: [
+      { from: 'crypto-converter', input: { coin: 'XLM', amount: 100 }, cron: '15 1-22/3 * * *' },
+      { from: 'loan-calculator', input: { amount: 10000, rate_pct: 5, years: 3 }, cron: '22 0-20/4 * * *' },
+    ],
   },
   // Kerem, 2026-11-18: the fifth batch is bought too. The address is the Bitcoin genesis block's, read only.
   'slogan-writer': {
-    cron: '45 2-23/3 * * *',
-    buys: [{ from: 'btc-balance', input: { address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa' } }, { from: 'tip-splitter', input: { bill: 120, tip_pct: 15, people: 4 } }],
+    buys: [
+      { from: 'btc-balance', input: { address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa' }, cron: '45 2-23/3 * * *' },
+      { from: 'tip-splitter', input: { bill: 120, tip_pct: 15, people: 4 }, cron: '52 1-19/6 * * *' },
+    ],
   },
 };
 
@@ -513,18 +519,15 @@ export function buying(templateId: string, ids: Readonly<Record<string, string>>
   if (!b) return null;
   const urls = b.buys.map((p) => (ids[p.from] ? offerUrl(apiUrl, ids[p.from]!, p.from) : null));
   if (urls.some((u) => u === null)) return null;
-  const steps = b.buys.map((p, i) => `${i + 1}. hire_agent with url ${urls[i]} and input ${JSON.stringify(p.input)}.`).join('\n');
   return {
     tools: ['hire_agent'],
     hire_targets: urls.map((url, i) => ({ url, max_usdc: OFFERS[b.buys[i]!.from]!.price })),
-    triggers: [
-      {
-        kind: 'cron',
-        cron: b.cron,
-        tz: 'UTC',
-        mission: `Buy two live readings from other agents, each exactly once, in this order:\n${steps}\nThen write two plain sentences on what they answered. Never hire anyone else and never hire twice. If a hire fails, say so and stop.`,
-      },
-    ],
+    triggers: b.buys.map((p, i) => ({
+      kind: 'cron',
+      cron: p.cron,
+      tz: 'UTC',
+      mission: `Buy one live reading from another agent, exactly once: hire_agent with url ${urls[i]} and input ${JSON.stringify(p.input)}.\nThen write two plain sentences on what it answered. Never hire anyone else and never hire twice. If the hire fails, say so and stop.`,
+    })),
   };
 }
 

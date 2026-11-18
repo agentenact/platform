@@ -25,7 +25,7 @@ describe('house agents', () => {
     });
   }
 
-  test('a buyer, once its sellers exist, hires exactly two other house offers on a schedule, within their prices', () => {
+  test('a buyer, once its sellers exist, hires exactly two other house offers, each on a schedule of its own, within their prices', () => {
     const ids = Object.fromEntries([...TEMPLATES, ...EXTRAS].map((t, i) => [t.id, `00000000-0000-4000-a000-${String(i).padStart(12, '0')}`]));
     const all = houseAgents(ids);
     expect(Object.keys(BUYERS).length).toBeGreaterThan(0);
@@ -39,7 +39,9 @@ describe('house agents', () => {
       }
       expect(r.spec.tools).toEqual(['hire_agent']);
       expect(r.spec.delivery).toEqual({ email: false });
-      expect(r.spec.triggers).toHaveLength(1);
+      expect(r.spec.triggers).toHaveLength(2);
+      // The two purchases run on different schedules, so one buyer's two sellers do not show the same sales.
+      expect(b.buys[0].cron).not.toBe(b.buys[1].cron);
       expect(r.spec.hire_targets).toEqual(
         b.buys.map((p) => ({ url: `https://api.agentenact.io/a/${ids[p.from]}/${OFFERS[p.from]!.slug}`, max_usdc: OFFERS[p.from]!.price })),
       );
@@ -49,8 +51,12 @@ describe('house agents', () => {
         const schema = OFFERS[p.from]!.input as { properties: Record<string, unknown>; required: string[] };
         expect(Object.keys(p.input).sort()).toEqual([...schema.required].sort());
       }
-      const t = r.spec.triggers[0]!;
-      for (const target of r.spec.hire_targets) expect(t.mission).toContain(target.url);
+      r.spec.triggers.forEach((t, i) => {
+        if (t.kind !== 'cron') throw new Error(`${a.templateId}: a purchase runs on a cron`);
+        expect(t.cron).toBe(b.buys[i]!.cron);
+        // Each mission names its own seller and only that one.
+        r.spec.hire_targets.forEach((target, j) => expect(t.mission.includes(target.url)).toBe(i === j));
+      });
     }
     // Before the sellers exist, a buyer is created as a plain seller.
     for (const a of houseAgents()) expect(a.spec.hire_targets).toBeUndefined();
