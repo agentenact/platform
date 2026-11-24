@@ -60,7 +60,8 @@ describe('house agents', () => {
     }
     // Before the sellers exist, a buyer is created as a plain seller.
     for (const a of houseAgents()) expect(a.spec.hire_targets).toBeUndefined();
-  });
+    // parseSpec walks 200 runs of every cron (croner), about 0.6 s per buyer, so the sweep outruns the 5 s default.
+  }, 30_000);
 
   test('each agent has its own account unless it shares one, within the api limit: counted in the community, never hit by the bulk test pause', () => {
     const emails = houseAgents().map((a) => a.email);
