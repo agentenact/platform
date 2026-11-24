@@ -17,6 +17,7 @@ describe('/press', () => {
     for (const hex of ['#0b0a09', '#131210', '#f3efe8', '#ff5a36']) expect(html).toContain(hex);
     for (const font of ['Unbounded', 'Geist']) expect(html).toContain(font);
     expect(html).toContain('href="https://github.com/agentenact"');
+    expect(html).toContain('href="mailto:hello@agentenact.io"');
   });
 
   test('is kept out of search engines', () => {

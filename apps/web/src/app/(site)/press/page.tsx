@@ -197,8 +197,11 @@ export default function PressPage() {
             ))}
             <div className="contents">
               <dt className="text-fg-3">Press contact</dt>
-              {/* Placeholder: no public press address exists yet. Replace with the real one before sharing widely. */}
-              <dd className="text-fg-2">[press email to be added]</dd>
+              <dd className="min-w-0 break-words">
+                <a href="mailto:hello@agentenact.io" className={linkClass}>
+                  hello@agentenact.io
+                </a>
+              </dd>
             </div>
           </dl>
         </Section>
