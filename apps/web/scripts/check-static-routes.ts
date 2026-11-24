@@ -9,4 +9,4 @@ if (problems.length) {
   console.error(`static route check failed:\n  ${problems.join('\n  ')}`);
   process.exit(1);
 }
-console.log('static route check: /, /explore, /verify and /create are prerendered; the session pages are not');
+console.log('static route check: /, /explore, /verify, /create and /press are prerendered; the session pages are not');

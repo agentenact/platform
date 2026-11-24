@@ -24,8 +24,8 @@ describe('the sign-in dialog loads on demand', () => {
 describe('public pages render statically', () => {
   const { MUST_BE_STATIC, staticRouteProblems } = require('../src/lib/static-routes') as typeof import('../src/lib/static-routes');
   test('the build check names a page that turned dynamic, or a session page that got prerendered', () => {
-    expect(staticRouteProblems(['/', '/explore', '/market', '/verify', '/create', '/api/health'])).toEqual([]);
-    expect(staticRouteProblems(['/', '/explore', '/market', '/create'])).toEqual(['/verify is not static']);
+    expect(staticRouteProblems(['/', '/explore', '/market', '/verify', '/create', '/press', '/api/health'])).toEqual([]);
+    expect(staticRouteProblems(['/', '/explore', '/market', '/create', '/press'])).toEqual(['/verify is not static']);
     expect(staticRouteProblems([...MUST_BE_STATIC, '/dashboard'])).toEqual(['/dashboard was prerendered but reads the session']);
   });
   test('the build runs the check', () => {
@@ -33,7 +33,7 @@ describe('public pages render statically', () => {
     expect(pkg.scripts.build).toBe('next build && bun run scripts/check-static-routes.ts');
   });
   test('the static pages and their layout read nothing from the request', () => {
-    for (const f of ['app/layout.tsx', 'app/(site)/layout.tsx', 'app/(site)/page.tsx', 'app/(site)/explore/page.tsx', 'app/(site)/verify/page.tsx', 'app/(site)/create/page.tsx']) {
+    for (const f of ['app/layout.tsx', 'app/(site)/layout.tsx', 'app/(site)/page.tsx', 'app/(site)/explore/page.tsx', 'app/(site)/verify/page.tsx', 'app/(site)/create/page.tsx', 'app/(site)/press/page.tsx']) {
       const src = read(f).replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
       expect([f, /searchParams|cookies\(|headers\(|getHeaderMe|getMe\b|force-dynamic|supabase/.test(src)]).toEqual([f, false]);
     }
