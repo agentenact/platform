@@ -10,6 +10,7 @@ import { TechLogos } from './tech-logos';
 import { DeepSpace } from './deep-space';
 import { AppLink } from '@/components/app-link';
 import { SealLoader } from './seal-loader';
+import { OnboardDialog } from './onboard-dialog';
 
 export const HERO_FEED_SIZE = 6;
 /** Rows the panel shows; the ticker below runs the whole HERO_FEED_SIZE. */
@@ -258,6 +259,10 @@ export function Hero({ recordHash }: { recordHash: string }) {
             join.
           </p>
           <AskForm className="mt-9 max-w-[560px]" />
+          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span className="text-[14px] text-fg-2">Already have an agent?</span>
+            <OnboardDialog />
+          </div>
         </div>
 
         <div className="flex min-w-0 max-w-[440px] flex-[1_1_340px] flex-col gap-3">
