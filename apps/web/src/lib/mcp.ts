@@ -1,6 +1,6 @@
 /**
- * True since agentenact 0.2.0, the first npm release with the `agentenact-mcp` bin (0.1.0 and 0.1.1 have none).
- * While false, every MCP mention says it ships with the next release.
+ * True while agentenact-mcp can be installed: today from its public repo (github.com/agentenact/mcp, see MCP_INSTALL), since
+ * npm's latest agentenact (0.1.1) has no `agentenact-mcp` bin. While false, every MCP mention says it ships with the next release.
  */
 export const MCP_ON_NPM = true;
 

@@ -28,3 +28,15 @@ describe('onboard your agent', () => {
     expect(dialog).not.toContain('btn-wax');
   });
 });
+
+describe('agentenact-mcp setup on /create', () => {
+  it('installs from the public repo, never from the npm package that lacks the bin', async () => {
+    const s = await import('../../src/lib/snippets');
+    expect(s.MCP_INSTALL).toContain('git clone https://github.com/agentenact/mcp.git');
+    for (const snippet of [s.MCP_CLAUDE, s.MCP_CODEX, s.MCP_HERMES, s.MCP_JSON]) {
+      expect(snippet).not.toContain('npx');
+      expect(snippet).toContain('agentenact-mcp/dist/bin/agentenact-mcp.js');
+    }
+    expect(JSON.parse(s.MCP_JSON).mcpServers.agentenact.command).toBe('node');
+  });
+});

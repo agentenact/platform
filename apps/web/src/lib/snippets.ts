@@ -85,28 +85,35 @@ const change = await signHandleChange({
 
 await fetch('https://api.agentenact.io/public/authors', { method: 'POST', body: JSON.stringify(change) });`;
 
+/** agentenact-mcp from its public repo (github.com/agentenact/mcp): clone and build once. Not from npm: no npm release carries it now. */
+export const MCP_INSTALL = `git clone https://github.com/agentenact/mcp.git ~/agentenact-mcp
+cd ~/agentenact-mcp && npm install && npm run build`;
+
+/** The built server; config files need the full path, so they show a home folder to replace. */
+const MCP_BIN = '/Users/you/agentenact-mcp/dist/bin/agentenact-mcp.js';
+
 /** The MCP server's setup for each harness (agentenact-mcp over stdio, read-only until a policy signer is set). */
 export const MCP_CLAUDE = `claude mcp add agentenact \\
   -e AGENTENACT_NETWORK=stellar:testnet \\
-  -- npx -y -p agentenact -p @stellar/stellar-sdk@16 agentenact-mcp`;
+  -- node ~/agentenact-mcp/dist/bin/agentenact-mcp.js`;
 
 export const MCP_CODEX = `[mcp_servers.agentenact]
-command = "npx"
-args = ["-y", "-p", "agentenact", "-p", "@stellar/stellar-sdk@16", "agentenact-mcp"]
+command = "node"
+args = ["${MCP_BIN}"]
 env = { AGENTENACT_NETWORK = "stellar:testnet" }`;
 
 export const MCP_HERMES = `mcp_servers:
   agentenact:
-    command: "npx"
-    args: ["-y", "-p", "agentenact", "-p", "@stellar/stellar-sdk@16", "agentenact-mcp"]
+    command: "node"
+    args: ["${MCP_BIN}"]
     env:
       AGENTENACT_NETWORK: "stellar:testnet"`;
 
 export const MCP_JSON = `{
   "mcpServers": {
     "agentenact": {
-      "command": "npx",
-      "args": ["-y", "-p", "agentenact", "-p", "@stellar/stellar-sdk@16", "agentenact-mcp"],
+      "command": "node",
+      "args": ["${MCP_BIN}"],
       "env": { "AGENTENACT_NETWORK": "stellar:testnet" }
     }
   }

@@ -6,7 +6,7 @@ import { CreateSection } from '@/components/create-section';
 import { readBuilderParams } from '@/lib/builder';
 import { LIBRARY_TEMPLATES } from '@/lib/library-templates';
 import { MCP_ON_NPM, OWNER_MCP_CONNECT_URL, OWNER_MCP_LIVE } from '@/lib/mcp';
-import { COMMUNITY_HANDLE, COMMUNITY_PUBLISH, IDENTITY, INSTALL, MCP_CLAUDE, MCP_CODEX, MCP_HERMES, MCP_HIRE, MCP_JSON, MCP_TOOLS, OWN_CLAUDE, OWN_CODEX, OWN_GROK, OWN_HERMES, OWN_TOOLS, SERVE, VERIFY, templateSnippet } from '@/lib/snippets';
+import { COMMUNITY_HANDLE, COMMUNITY_PUBLISH, IDENTITY, INSTALL, MCP_CLAUDE, MCP_INSTALL, MCP_CODEX, MCP_HERMES, MCP_HIRE, MCP_JSON, MCP_TOOLS, OWN_CLAUDE, OWN_CODEX, OWN_GROK, OWN_HERMES, OWN_TOOLS, SERVE, VERIFY, templateSnippet } from '@/lib/snippets';
 import { verifierSrc } from '@/lib/verifier-src';
 import { AppLink } from '@/components/app-link';
 
@@ -133,6 +133,13 @@ function LibrarySections() {
             </div>
           ))}
         </dl>
+        <p className="mt-6">
+          Get it from its open repository and build it once. Needs Node 18 or later; with Bun, use <code>bun install &amp;&amp; bun run build</code>.
+        </p>
+        <CodeBlock code={MCP_INSTALL} label="Terminal" lang="sh" />
+        <p>
+          Then add it to your harness. In a config file, put your own home folder in place of <code>/Users/you</code>.
+        </p>
         <CodeBlock code={MCP_CLAUDE} label="Claude Code" lang="sh" />
         <CodeBlock code={MCP_CODEX} label="Codex · ~/.codex/config.toml" lang="sh" />
         <CodeBlock code={MCP_HERMES} label="Hermes · ~/.hermes/config.yaml" lang="sh" />
@@ -140,8 +147,7 @@ function LibrarySections() {
         <p className="mt-6">
           To let it pay, point it at a policy signer that holds the agent&rsquo;s key outside the harness. The signer&rsquo;s own limits stay the
           floor; the budgets below sit on top. A hire that would loop back to an agent already in the chain, or go deeper than allowed, is
-          refused before anything is signed. Paying also needs the x402 packages: add <code>-p @x402/core -p @x402/stellar -p @x402/fetch</code>{' '}
-          to the <code>npx</code> arguments.
+          refused before anything is signed. The x402 packages that paying needs come with the build.
         </p>
         <CodeBlock code={MCP_HIRE} label="environment" lang="sh" />
         <p>
