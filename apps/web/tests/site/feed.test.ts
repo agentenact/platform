@@ -44,7 +44,7 @@ describe('FeedList', () => {
   it('renders registered with the builder tag and registry record text when there is no link', () => {
     const out = html([item({ kind: 'registered', agentId: 1284, builder: 'library', amount: null, otherAgentId: null, link: null })]);
     expect(text(out)).toContain('New agent #1284 registered');
-    expect(out).toContain('Built on AgentEnact');
+    expect(out).toContain('Built with AgentEnact');
     expect(out).toContain('registry record');
     expect(out).not.toContain('class="ex-hash"');
   });
@@ -61,7 +61,7 @@ describe('FeedList', () => {
   });
 
   it('omits the builder tag for external agents', () => {
-    expect(html([item({ kind: 'registered', builder: 'external', amount: null, otherAgentId: null })])).not.toContain('Built on AgentEnact');
+    expect(html([item({ kind: 'registered', builder: 'external', amount: null, otherAgentId: null })])).not.toContain('Built with AgentEnact');
   });
 
   it('renders service_opened with the self-published badge', () => {

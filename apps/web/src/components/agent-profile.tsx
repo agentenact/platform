@@ -6,6 +6,7 @@ import {
   type AgentProfile, type HistoryItem,
 } from '../lib/explore';
 import { shorten } from '../lib/format';
+import { makerLines } from './maker';
 import { agentSealOf } from '../lib/seal';
 import { Seal } from './seal';
 import { AppLink } from '@/components/app-link';
@@ -112,6 +113,7 @@ function HistoryLine({ h, now }: { h: HistoryItem; now: Date }) {
 
 export function ProfileView({ profile: p, now }: { profile: AgentProfile; now: Date }) {
   const ae = p.builder !== 'external';
+  const maker = makerLines(p);
   const sp = p.hidden ? null : p.selfPublished;
   const name = sp?.name || null;
   const registeredOn = p.registered.at ? p.registered.at.slice(0, 10) : null;
@@ -189,10 +191,18 @@ export function ProfileView({ profile: p, now }: { profile: AgentProfile; now: D
               <dt className="text-fg-3">Network</dt>
               <dd className="mt-0.5">Testnet (stellar-8004 registry)</dd>
             </div>
+            {maker.by ? (
+              <div className="px-5 py-3.5">
+                <dt className="text-fg-3">Created by</dt>
+                <dd className={`mt-0.5 min-w-0 [overflow-wrap:anywhere] ${maker.by.address ? 'font-mono text-[13px]' : ''}`} title={maker.by.title}>
+                  {maker.by.name}
+                </dd>
+              </div>
+            ) : null}
             <div className="px-5 py-3.5">
-              <dt className="text-fg-3">Built</dt>
+              <dt className="text-fg-3">Built with</dt>
               <dd className="mt-1">
-                <span className={`${tag} ${ae ? 'border-accent-ink text-accent-ink' : 'border-line text-fg-2'}`}>{ae ? 'AgentEnact' : 'external'}</span>
+                <span className={`${tag} ${ae ? 'border-accent-ink text-accent-ink' : 'border-line text-fg-2'}`}>{ae ? 'AgentEnact' : 'elsewhere'}</span>
               </dd>
             </div>
             <div className="px-5 py-3.5">

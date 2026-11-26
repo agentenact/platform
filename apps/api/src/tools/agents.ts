@@ -40,6 +40,8 @@ export function createAgentReads(d: {
         agents: r.items.map((a) => ({
           agent_id: String(a.id),
           builder: a.builder,
+          // who made it: 'house' (AgentEnact's own) or its on-chain owner address
+          creator: a.creator.kind === 'house' ? 'house' : a.creator.address,
           selfPublished: a.selfPublished,
           // can be called (HireOffer): price_usdc is the lowest published price (null: quoted when called); service and
           // url name what to pass hire_agent (null: read get_agent for it)
@@ -71,6 +73,7 @@ export function createAgentReads(d: {
         owner: p.owner,
         wallet: p.wallet,
         builder: p.builder,
+        creator: p.creator.kind === 'house' ? 'house' : p.creator.address,
         proven_sales: p.totals.provenSales,
         uri,
         selfPublished: document ?? (p.selfPublished ? { ...p.selfPublished, endpoints: [] } : null),

@@ -23,12 +23,12 @@ const adapter: ChainAdapter = {
 };
 
 const card: AgentCard = {
-  id: 13, builder: 'hosted', selfPublished: { name: 'Summariser', description: null, service: { slug: 'summary', description: 'Summarise text', priceUsdc: '0.01' } },
+  id: 13, builder: 'hosted', creator: { kind: 'house' }, selfPublished: { name: 'Summariser', description: null, service: { slug: 'summary', description: 'Summarise text', priceUsdc: '0.01' } },
   paymentsReceived: 21, usdcReceived: '0.21', lastPaymentAt: null, provenSales: 4, seals: 0, lastActiveAt: '2026-10-26T13:17:57.000Z', karma: null,
   hire: { priceUsdc: '0.01', service: { slug: 'summary', url: 'https://api.agentenact.io/a/u/summary' } },
 };
 const profile = (o: Partial<AgentProfile> = {}): AgentProfile => ({
-  id: 13, owner: 'GOWNER', wallet: SELLER, builder: 'hosted', registered: { at: null, txHash: null, source: 'registry_read' }, lastActiveAt: null,
+  id: 13, owner: 'GOWNER', wallet: SELLER, builder: 'hosted', creator: { kind: 'owner', address: 'GOWNER' }, registered: { at: null, txHash: null, source: 'registry_read' }, lastActiveAt: null,
   totals: { paymentsReceived: 21, usdcReceived: '0.21', provenSales: 4 }, history: [], payments: { source: 'agentkarma', available: true, asOf: null },
   karma: null, selfPublished: { name: 'Summariser', description: null, services: [{ slug: 'summary', description: 'Summarise text', priceUsdc: '0.01', url: null }], fetchedAt: '2026-10-27T00:00:00Z' },
   hire: { priceUsdc: '0.01', service: null }, site: null, hidden: false, links: { karma: 'https://agentkarma.io/x' }, ...o,
@@ -59,7 +59,7 @@ describe('agent reads', () => {
     const { r, asked } = reads();
     expect(await r.find({ query: 'summar', limit: 99 })).toEqual({
       network: 'stellar:testnet',
-      agents: [{ agent_id: '13', builder: 'hosted', selfPublished: card.selfPublished, for_hire: { price_usdc: '0.01', service: 'summary', url: 'https://api.agentenact.io/a/u/summary' }, proven_sales: 4, last_active_at: '2026-10-26T13:17:57.000Z' }],
+      agents: [{ agent_id: '13', builder: 'hosted', creator: 'house', selfPublished: card.selfPublished, for_hire: { price_usdc: '0.01', service: 'summary', url: 'https://api.agentenact.io/a/u/summary' }, proven_sales: 4, last_active_at: '2026-10-26T13:17:57.000Z' }],
       next: null,
     });
     expect(asked).toEqual([{ q: 'summar', limit: 25 }]);

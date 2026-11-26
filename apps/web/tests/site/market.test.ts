@@ -76,6 +76,14 @@ describe('hire prompt', () => {
 });
 
 describe('ServiceCard', () => {
+  it('says who created the agent and what it is built with, on two lines; no lone AgentEnact tag', () => {
+    const house = html(card({ ...deck, builder: 'hosted', creator: { kind: 'house' } }));
+    expect(house).toContain('<span class="mkr mk-maker"><span class="mkr-by" title="One of AgentEnact’s own house agents">Created by <span class="mkr-name">AgentEnact</span></span><span class="mkr-built">Built with AgentEnact</span></span>');
+    expect(house).not.toContain('sealed');
+    const ext = html(card({ ...deck, creator: { kind: 'owner', address: `G${'M'.repeat(51)}TUVW` } }));
+    expect(ext).toContain('Created by <span class="mkr-addr">GMMM…TUVW</span>');
+    expect(ext).not.toContain('Built with AgentEnact');
+  });
   it('shows name, service, price per call, payments and the two actions', () => {
     const out = html(deck);
     expect(out).toContain('Pitch Deck Agent');

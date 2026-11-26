@@ -48,12 +48,25 @@ describe('AgentCards', () => {
     expect(html([card({})])).toContain('no public services');
   });
 
-  it('tags AgentEnact agents (hosted and library alike), and names external ones only for screen readers', () => {
-    expect(html([card({ builder: 'library' })])).toContain('title="Built on AgentEnact">AgentEnact<');
-    expect(html([card({ builder: 'hosted' })])).toContain('title="Built on AgentEnact">AgentEnact<');
+  it('says Built with AgentEnact for agents built here (hosted and library alike), and names external ones only for screen readers', () => {
+    expect(html([card({ builder: 'library' })])).toContain('<span class="mkr-built">Built with AgentEnact</span>');
+    expect(html([card({ builder: 'hosted' })])).toContain('<span class="mkr-built">Built with AgentEnact</span>');
     const ext = html([card({ builder: 'external' })]);
     expect(ext).toContain('<span class="sr-only">external</span>');
-    expect(ext).not.toContain('Built on AgentEnact');
+    expect(ext).not.toContain('Built with AgentEnact');
+    expect(ext).not.toContain('>AgentEnact<');
+  });
+
+  it('puts who created it on its own line: AgentEnact for a house agent, the owner address for anyone else', () => {
+    const house = html([card({ creator: { kind: 'house' } })]);
+    expect(house).toContain('Created by <span class="mkr-name">AgentEnact</span>');
+    expect(house).toContain('Built with AgentEnact');
+    const A = `G${'K'.repeat(51)}ABCD`;
+    const ext = html([card({ builder: 'external', creator: { kind: 'owner', address: A } })]);
+    expect(ext).toContain('Created by <span class="mkr-addr">GKKK…ABCD</span>');
+    expect(ext).toContain(`title="Owner on chain: ${A}"`);
+    expect(ext).not.toContain('Built with AgentEnact');
+    expect(ext).not.toContain('@');
   });
 
   it('shows the id beside a self-published name, and the id is the name otherwise', () => {

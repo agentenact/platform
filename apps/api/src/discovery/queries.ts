@@ -3,6 +3,7 @@ import type { Db } from '../db/index.js';
 import type { Karma, KarmaFacts } from './karma.js';
 import { predicates } from './predicates.js';
 import { likePattern } from './text.js';
+import { HOUSE_EMAIL_REGEX } from '../test-accounts.js';
 
 export type Builder = 'hosted' | 'library' | 'external';
 
@@ -70,9 +71,20 @@ export interface PaymentsSource {
 /** AgentKarma's score for the agent (as a provider) and its tier label; null when AgentKarma has none or is unavailable. */
 export type KarmaScore = { score: number | null; tier: string | null } | null;
 
+/**
+ * Who made the agent, as cards show it beside "Built with AgentEnact". `house`: one of the operator's own agents (a house
+ * account, HOUSE_EMAIL_REGEX), so it reads as made by AgentEnact and never as someone else's. `owner`: its on-chain owner
+ * address, the one public name every agent has. Accounts have no display name, and an email is never shown.
+ */
+export type Creator = { kind: 'house' } | { kind: 'owner'; address: string };
+
+/** House only while the agent reads as hosted (its uuid claim verified and fresh, hostedUuidOf); otherwise its owner. */
+const creatorOf = (r: Record<string, unknown>): Creator => (r.is_house === true ? { kind: 'house' } : { kind: 'owner', address: r.owner as string });
+
 export interface AgentCard {
   id: number;
   builder: Builder;
+  creator: Creator;
   /** `description`: what the agent says it does, in its own registration document. */
   selfPublished: {
     name: string | null;
@@ -182,6 +194,7 @@ export interface AgentProfile {
   owner: string;
   wallet: string | null;
   builder: Builder;
+  creator: Creator;
   registered: { at: string | null; txHash: string | null; source: 'event' | 'registry_read' };
   lastActiveAt: string | null;
   /** Payment totals are null whenever the history is (both come from AgentKarma, so they never disagree). */
@@ -472,7 +485,7 @@ export function createDiscovery(
 
     const rows = (await sql`
       with page as (
-        select a.agent_id, a.last_active_at, a.hosted_uuid,
+        select a.agent_id, a.owner, a.last_active_at, a.hosted_uuid,
                ${builderOf(nowIso)} as builder,
                date_trunc('milliseconds', a.last_active_at) as la,
                (h.agent_id is not null) as hidden,
@@ -502,8 +515,10 @@ export function createDiscovery(
         order by date_trunc('milliseconds', a.last_active_at) desc nulls last, a.agent_id desc
         limit ${sqlLimit}
       )
-      select p.agent_id, p.builder, p.last_active_at, p.hidden, p.sp_id, p.sp_name, p.sp_description, p.sp_x402,
+      select p.agent_id, p.owner, p.builder, p.last_active_at, p.hidden, p.sp_id, p.sp_name, p.sp_description, p.sp_x402,
              (extract(epoch from p.la) * 1000)::bigint::text as la_ms,
+             (p.hu is not null and exists (select 1 from app.agents ag join app.users u on u.id = ag.user_id
+                                           where ag.id = p.hu::uuid and lower(u.email) ~ ${HOUSE_EMAIL_REGEX})) as is_house,
              (select count(*) from discovery.proven_sales ps where ps.agent_id = p.agent_id)::int as sales,
              (case when p.hu is null or p.hidden then 0
                    else (select count(*) from app.check_seals cs where cs.agent_id = p.hu::uuid and cs.status = 'sent') end)::int as seals,
@@ -537,6 +552,7 @@ export function createDiscovery(
       return {
         id: r.agent_id as number,
         builder: r.builder as Builder,
+        creator: creatorOf(r),
         selfPublished:
           r.hidden || r.sp_id === null
             ? null
@@ -592,7 +608,9 @@ export function createDiscovery(
              sp.agent_id as sp_id, sp.name as sp_name, sp.description as sp_description, sp.fetched_at as sp_fetched_at,
              coalesce(sp.x402, false) as sp_x402,
              (select count(*) from discovery.proven_sales where agent_id = a.agent_id)::int as sales,
-             ${hostedUuidOf(nowIso)} as hosted_uuid
+             ${hostedUuidOf(nowIso)} as hosted_uuid,
+             (${hostedUuidOf(nowIso)} is not null and exists (select 1 from app.agents ag join app.users u on u.id = ag.user_id
+                where ag.id = (${hostedUuidOf(nowIso)})::uuid and lower(u.email) ~ ${HOUSE_EMAIL_REGEX})) as is_house
       from discovery.agents a
       left join discovery.selfpub sp on sp.agent_id = a.agent_id
       left join discovery.hidden h on h.agent_id = a.agent_id
@@ -670,6 +688,7 @@ export function createDiscovery(
       owner,
       wallet: wallet !== null && wallet !== owner ? wallet : null,
       builder: r.builder as Builder,
+      creator: creatorOf(r),
       registered: { at: iso(r.registered_at), txHash: (r.registered_tx as string | null) ?? null, source: r.source as 'event' | 'registry_read' },
       lastActiveAt: iso(r.last_active_at),
       totals: { paymentsReceived: f?.paymentsReceived ?? null, usdcReceived: f?.usdcReceived ?? null, provenSales: r.sales as number },

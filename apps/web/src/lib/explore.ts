@@ -105,9 +105,17 @@ export interface PaymentsSource {
 /** AgentKarma's score and tier label for the agent; null when it has none or is unavailable. */
 export type KarmaScore = { score: number | null; tier: string | null } | null;
 
+/**
+ * Who made the agent. `house`: one of AgentEnact's own agents (the operator's house accounts). `owner`: its on-chain owner
+ * address, the public name every agent has. Never an email.
+ */
+export type Creator = { kind: 'house' } | { kind: 'owner'; address: string };
+
 export interface AgentCard {
   id: number;
   builder: Builder;
+  /** Who made it. Absent on older api builds: then only "Built with AgentEnact" shows. */
+  creator?: Creator;
   /** `description`: what the agent says it does. Absent on older api builds. */
   selfPublished: { name: string | null; description?: string | null; service: AgentService | null } | null;
   /** From AgentKarma. null: AgentKarma unavailable, or it does not list the agent yet. */
@@ -204,6 +212,8 @@ export interface AgentProfile {
   owner: string;
   wallet: string | null;
   builder: Builder;
+  /** Same as AgentCard.creator. Absent on older api builds. */
+  creator?: Creator;
   registered: { at: string | null; txHash: string | null; source: 'event' | 'registry_read' };
   lastActiveAt: string | null;
   totals: { paymentsReceived: number | null; usdcReceived: string | null; provenSales: number };

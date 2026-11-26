@@ -1,5 +1,6 @@
 'use client';
 
+import { Maker } from './maker';
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { formatUsdc, getJson, karmaLabel, plural, type AgentCard, type AgentsPage } from '../lib/explore';
 import {
@@ -76,8 +77,8 @@ export function ServiceCard({ agent: a, pick = false }: { agent: AgentCard; pick
           <p className="mk-id">
             <span className="mk-kind">{categoryLabel(categoryOf(a))}</span>
             <span aria-hidden="true"> · </span>#{a.id}
-            {ae ? <span className="mk-here"> · sealed</span> : null}
           </p>
+          <Maker builder={a.builder} creator={a.creator} className="mkr mk-maker" />
         </div>
       </div>
       <div className="mk-svc">

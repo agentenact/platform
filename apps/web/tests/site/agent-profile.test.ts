@@ -139,9 +139,25 @@ describe('ProfileView', () => {
   it('falls back to the registry record without a registration tx, and tags external agents', () => {
     const out = html(profile({ builder: 'external', registered: { at: null, txHash: null, source: 'registry_read' }, selfPublished: null }));
     expect(out).toContain('registry record #46');
-    expect(out).toContain('>external<');
+    expect(out).toContain('>elsewhere<');
     expect(out).not.toContain('Services');
     expect(out).toContain('See ratings on AgentKarma ↗');
+  });
+});
+
+describe('ProfileView creator', () => {
+  it('names a house agent as made by AgentEnact, and any other agent by its owner address', () => {
+    const house = html(profile({ creator: { kind: 'house' } }));
+    expect(house).toContain('>Created by<');
+    expect(house).toContain('title="One of AgentEnact’s own house agents">AgentEnact<');
+    expect(house).toContain('>Built with<');
+    const A = `G${'Q'.repeat(51)}WXYZ`;
+    const own = html(profile({ creator: { kind: 'owner', address: A } }));
+    expect(own).toContain(`title="Owner on chain: ${A}">GQQQ…WXYZ<`);
+  });
+
+  it('shows no Created by row on an older api build that sends no creator', () => {
+    expect(html(profile({}))).not.toContain('>Created by<');
   });
 });
 

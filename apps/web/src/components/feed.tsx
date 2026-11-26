@@ -81,7 +81,7 @@ function Line({ item, now }: { item: FeedItem; now: Date }) {
       <div className="ex-m">
         <span className="ex-tx">
           {text}
-          {item.kind === 'registered' && item.builder !== 'external' ? <span className={`${tag} ex-tag-ae ml-2`}>Built on AgentEnact</span> : null}
+          {item.kind === 'registered' && item.builder !== 'external' ? <span className={`${tag} ex-tag-ae ml-2`}>Built with AgentEnact</span> : null}
           {item.kind === 'service_opened' ? <span className={`${tag} ml-2`}>self-published</span> : null}
         </span>
         {link ? (

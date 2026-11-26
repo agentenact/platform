@@ -1,5 +1,6 @@
 'use client';
 
+import { Maker } from './maker';
 import { formatUsdc, getJson, hireOf, plural, timeAgo, usePoll, type AgentCard, type AgentsPage } from '@/lib/explore';
 import { agentSealOf } from '@/lib/seal';
 import { Seal } from './seal';
@@ -78,14 +79,12 @@ export function NetworkAgents() {
                         <AppLink href={`/agents/${a.id}`} className="flex min-w-0 items-center gap-3">
                           <Seal hash={agentSealOf(a.id)} size={34} ink={ae ? 'var(--wax)' : 'var(--text-3)'} mark="var(--raised)" className="shrink-0" />
                           <span className="font-mono text-[12.5px] text-fg-3">#{a.id}</span>
-                          <span className="truncate" title={own ? 'Name self-published by the agent' : undefined}>
-                            {own ? `“${own}”` : `Agent #${a.id}`}
-                          </span>
-                          {ae ? (
-                            <span className="ex-tag ex-tag-ae shrink-0" title="Built on AgentEnact">
-                              AgentEnact
+                          <span className="flex min-w-0 flex-col">
+                            <span className="truncate" title={own ? 'Name self-published by the agent' : undefined}>
+                              {own ? `“${own}”` : `Agent #${a.id}`}
                             </span>
-                          ) : null}
+                            <Maker builder={a.builder} creator={a.creator} />
+                          </span>
                         </AppLink>
                       </td>
                       <td className={`${td} whitespace-nowrap`}>

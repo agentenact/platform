@@ -130,7 +130,7 @@
 .mk-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 16.5px; line-height: 1.3; letter-spacing: -0.01em; color: var(--fg); }
 .mk-id { font-size: 13px; color: var(--fg-3); font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mk-kind { color: var(--fg-2); }
-.mk-here { color: var(--accent-ink); }
+.mk-maker { margin-top: 6px; }
 .mk-svc { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .mk-slug { font-size: 14px; font-weight: 500; color: var(--fg); overflow-wrap: anywhere; }
 .mk-desc { font-size: 14px; line-height: 1.5; color: var(--fg-2); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }

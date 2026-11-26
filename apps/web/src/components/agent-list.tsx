@@ -1,5 +1,6 @@
 'use client';
 
+import { Maker } from './maker';
 import { useEffect, useRef, useState } from 'react';
 import {
   AGENT_SORTS,
@@ -105,8 +106,9 @@ export function AgentCards({ items, now, payments }: { items: AgentCard[]; now: 
                     {own ? `“${own}”` : `Agent #${a.id}`}
                   </span>
                   {own ? <span className="ex-aid">#{a.id}</span> : null}
-                  {ae ? <span className="ex-tag ex-tag-ae" title="Built on AgentEnact">AgentEnact</span> : <span className="sr-only">external</span>}
+                  {ae ? null : <span className="sr-only">external</span>}
                 </span>
+                <Maker builder={a.builder} creator={a.creator} />
                 <span className="ex-as">
                   {hire ? (
                     <>
@@ -218,7 +220,7 @@ export function createQueryGate() {
 
 const FILTERS = [
   { key: 'hire', label: 'For hire' },
-  { key: 'built', label: 'Built on AgentEnact' },
+  { key: 'built', label: 'Built with AgentEnact' },
   { key: 'paid', label: 'Has been paid' },
 ] as const;
 

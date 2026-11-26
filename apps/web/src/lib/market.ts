@@ -154,7 +154,7 @@ export const FLAGS = [
   { id: 'hired', label: 'Hired before', test: (a: AgentCard) => isHiredBefore(a) },
   { id: 'proof', label: 'Has proofs', test: (a: AgentCard) => hasProofs(a) },
   { id: 'rated', label: 'Well rated', test: (a: AgentCard) => isGoodKarma(a) },
-  { id: 'here', label: 'Built on AgentEnact', test: (a: AgentCard) => isBuiltHere(a) },
+  { id: 'here', label: 'Built with AgentEnact', test: (a: AgentCard) => isBuiltHere(a) },
   { id: 'active', label: 'Active this week', test: (a: AgentCard, now: number) => isActive(a, now) },
 ] as const;
 export type FlagId = (typeof FLAGS)[number]['id'];

@@ -449,11 +449,53 @@ describe('discovery queries', () => {
       kById.set(1, facts({ paymentsReceived: 2, usdcReceived: '0.003', lastPaymentAt: ago(3 * HOUR), score: 87, tier: 'Very Good' }));
       const r = await d().agents({});
       expect(r.items[0]).toEqual({
-        id: 1, builder: 'external', selfPublished: null,
+        id: 1, builder: 'external', creator: { kind: 'owner', address: G('B') }, selfPublished: null,
         paymentsReceived: 2, usdcReceived: '0.003', lastPaymentAt: ago(3 * HOUR), provenSales: 1, seals: 0, lastActiveAt: ago(MIN),
         karma: { score: 87, tier: 'Very Good' }, hire: null,
       });
       expect(r.payments).toEqual({ source: 'agentkarma', available: true, asOf: KARMA_AS_OF });
+    });
+
+    describe('creator', () => {
+      beforeEach(async () => {
+        await sql`truncate app.check_seals, app.agents, app.users cascade`;
+      });
+      /** Agent `id` as a verified hosted agent of an account with `email`. */
+      const hostedBy = async (id: number, email: string, fetchedAt = ago(MIN)) => {
+        const uuid = await insertAgent(sql, await insertUser(sql, { email }), { status: 'active' });
+        await sql`update discovery.agents set builder = 'hosted', hosted_uuid = ${uuid} where agent_id = ${id}`;
+        await selfpub(id, `hosted ${id}`, null, fetchedAt);
+      };
+
+      it('names a house account agent as AgentEnact, every other agent by its on-chain owner, never by email', async () => {
+        await agent(1, { lastActive: ago(1 * MIN), owner: G('H') });
+        await agent(2, { lastActive: ago(2 * MIN), owner: G('U') });
+        await agent(3, { lastActive: ago(3 * MIN), owner: G('X') });
+        await hostedBy(1, 'kerem+house-writer@noras.tech');
+        await hostedBy(2, 'someone@example.com');
+        const r = await d().agents({});
+        expect(Object.fromEntries(r.items.map((c) => [c.id, c.creator]))).toEqual({
+          1: { kind: 'house' },
+          2: { kind: 'owner', address: G('U') },
+          3: { kind: 'owner', address: G('X') },
+        });
+        expect(JSON.stringify(r)).not.toContain('@');
+        expect((await d().profile(1))!.creator).toEqual({ kind: 'house' });
+        expect((await d().profile(2))!.creator).toEqual({ kind: 'owner', address: G('U') });
+      });
+
+      it('a house claim counts only while the agent reads as hosted (fresh, verified)', async () => {
+        await agent(1, { lastActive: ago(MIN), owner: G('H') });
+        await hostedBy(1, 'kerem+house@noras.tech', ago(2 * HOUR));
+        expect((await d().agents({})).items[0]!.creator).toEqual({ kind: 'owner', address: G('H') });
+        expect((await d().profile(1))!.creator).toEqual({ kind: 'owner', address: G('H') });
+      });
+
+      it('a look-alike address on another domain is not a house account', async () => {
+        await agent(1, { lastActive: ago(MIN), owner: G('H') });
+        await hostedBy(1, 'kerem+house@elsewhere.io');
+        expect((await d().agents({})).items[0]!.creator).toEqual({ kind: 'owner', address: G('H') });
+      });
     });
 
     it('an agent AgentKarma does not list yet has null payment fields and no score', async () => {
