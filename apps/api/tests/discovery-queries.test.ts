@@ -467,7 +467,7 @@ describe('discovery queries', () => {
         await selfpub(id, `hosted ${id}`, null, fetchedAt);
       };
 
-      it('names a house account agent as AgentEnact, every other agent by its on-chain owner, never by email', async () => {
+      it('names every agent by its on-chain owner, a house account agent too: nothing says house, never an email', async () => {
         await agent(1, { lastActive: ago(1 * MIN), owner: G('H') });
         await agent(2, { lastActive: ago(2 * MIN), owner: G('U') });
         await agent(3, { lastActive: ago(3 * MIN), owner: G('X') });
@@ -475,26 +475,16 @@ describe('discovery queries', () => {
         await hostedBy(2, 'someone@example.com');
         const r = await d().agents({});
         expect(Object.fromEntries(r.items.map((c) => [c.id, c.creator]))).toEqual({
-          1: { kind: 'house' },
+          1: { kind: 'owner', address: G('H') },
           2: { kind: 'owner', address: G('U') },
           3: { kind: 'owner', address: G('X') },
         });
-        expect(JSON.stringify(r)).not.toContain('@');
-        expect((await d().profile(1))!.creator).toEqual({ kind: 'house' });
-        expect((await d().profile(2))!.creator).toEqual({ kind: 'owner', address: G('U') });
-      });
-
-      it('a house claim counts only while the agent reads as hosted (fresh, verified)', async () => {
-        await agent(1, { lastActive: ago(MIN), owner: G('H') });
-        await hostedBy(1, 'kerem+house@noras.tech', ago(2 * HOUR));
-        expect((await d().agents({})).items[0]!.creator).toEqual({ kind: 'owner', address: G('H') });
-        expect((await d().profile(1))!.creator).toEqual({ kind: 'owner', address: G('H') });
-      });
-
-      it('a look-alike address on another domain is not a house account', async () => {
-        await agent(1, { lastActive: ago(MIN), owner: G('H') });
-        await hostedBy(1, 'kerem+house@elsewhere.io');
-        expect((await d().agents({})).items[0]!.creator).toEqual({ kind: 'owner', address: G('H') });
+        const p = await d().profile(1);
+        expect(p!.creator).toEqual({ kind: 'owner', address: G('H') });
+        for (const out of [JSON.stringify(r), JSON.stringify(p)]) {
+          expect(out).not.toContain('@');
+          expect(out.toLowerCase()).not.toContain('house');
+        }
       });
     });
 
