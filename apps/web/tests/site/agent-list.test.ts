@@ -57,9 +57,9 @@ describe('AgentCards', () => {
     expect(ext).not.toContain('>AgentEnact<');
   });
 
-  it('puts who created it on its own line: AgentEnact for a house agent, the owner address for anyone else', () => {
+  it('puts who created it on its own line: no Created by line for a house agent, the owner address for anyone else', () => {
     const house = html([card({ creator: { kind: 'house' } })]);
-    expect(house).toContain('Created by <span class="mkr-name">AgentEnact</span>');
+    expect(house).not.toContain('Created by');
     expect(house).toContain('Built with AgentEnact');
     const A = `G${'K'.repeat(51)}ABCD`;
     const ext = html([card({ builder: 'external', creator: { kind: 'owner', address: A } })]);

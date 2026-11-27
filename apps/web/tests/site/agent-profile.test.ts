@@ -146,10 +146,9 @@ describe('ProfileView', () => {
 });
 
 describe('ProfileView creator', () => {
-  it('names a house agent as made by AgentEnact, and any other agent by its owner address', () => {
+  it('shows no Created by row for a house agent, and names any other agent by its owner address', () => {
     const house = html(profile({ creator: { kind: 'house' } }));
-    expect(house).toContain('>Created by<');
-    expect(house).toContain('title="One of AgentEnact’s own house agents">AgentEnact<');
+    expect(house).not.toContain('>Created by<');
     expect(house).toContain('>Built with<');
     const A = `G${'Q'.repeat(51)}WXYZ`;
     const own = html(profile({ creator: { kind: 'owner', address: A } }));

@@ -3,16 +3,13 @@ import { shorten } from '../lib/format';
 
 /**
  * Who made an agent and what it is built with, as two separate lines (Kerem, 2026-11-26: a lone "AgentEnact" tag read as
- * if AgentEnact made every agent). "Created by" names AgentEnact only for its own house agents and the on-chain owner for
- * everyone else; "Built with AgentEnact" shows for agents built here (hosted or library), never for external ones.
+ * if AgentEnact made every agent). "Created by" names the on-chain owner; house agents (AgentEnact's own) get no
+ * "Created by" line at all (Kerem, 2026-11-27). "Built with AgentEnact" shows for agents built here (hosted or library),
+ * never for external ones.
  */
 export function makerLines(a: { builder: Builder; creator?: Creator | undefined }): { by: { name: string; title: string; address: boolean } | null; built: boolean } {
   const c = a.creator;
-  const by = !c
-    ? null
-    : c.kind === 'house'
-      ? { name: 'AgentEnact', title: 'One of AgentEnact’s own house agents', address: false }
-      : { name: shorten(c.address, 4, 4), title: `Owner on chain: ${c.address}`, address: true };
+  const by = c?.kind === 'owner' ? { name: shorten(c.address, 4, 4), title: `Owner on chain: ${c.address}`, address: true } : null;
   return { by, built: a.builder !== 'external' };
 }
 
