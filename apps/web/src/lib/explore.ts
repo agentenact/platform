@@ -105,11 +105,8 @@ export interface PaymentsSource {
 /** AgentKarma's score and tier label for the agent; null when it has none or is unavailable. */
 export type KarmaScore = { score: number | null; tier: string | null } | null;
 
-/**
- * Who made the agent. `house`: one of AgentEnact's own agents (the operator's house accounts). `owner`: its on-chain owner
- * address, the public name every agent has. Never an email.
- */
-export type Creator = { kind: 'house' } | { kind: 'owner'; address: string };
+/** Who made the agent: its on-chain owner address, the public name every agent has. Never an email. */
+export type Creator = { kind: 'owner'; address: string };
 
 export interface AgentCard {
   id: number;

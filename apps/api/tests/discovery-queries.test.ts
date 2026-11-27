@@ -467,11 +467,11 @@ describe('discovery queries', () => {
         await selfpub(id, `hosted ${id}`, null, fetchedAt);
       };
 
-      it('names every agent by its on-chain owner, a house account agent too: nothing says house, never an email', async () => {
+      it('names every agent by its on-chain owner, hosted or not, never by email', async () => {
         await agent(1, { lastActive: ago(1 * MIN), owner: G('H') });
         await agent(2, { lastActive: ago(2 * MIN), owner: G('U') });
         await agent(3, { lastActive: ago(3 * MIN), owner: G('X') });
-        await hostedBy(1, 'kerem+house-writer@noras.tech');
+        await hostedBy(1, 'owner@example.org');
         await hostedBy(2, 'someone@example.com');
         const r = await d().agents({});
         expect(Object.fromEntries(r.items.map((c) => [c.id, c.creator]))).toEqual({
@@ -483,7 +483,6 @@ describe('discovery queries', () => {
         expect(p!.creator).toEqual({ kind: 'owner', address: G('H') });
         for (const out of [JSON.stringify(r), JSON.stringify(p)]) {
           expect(out).not.toContain('@');
-          expect(out.toLowerCase()).not.toContain('house');
         }
       });
     });

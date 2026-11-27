@@ -77,10 +77,9 @@ describe('hire prompt', () => {
 
 describe('ServiceCard', () => {
   it('says who created the agent and what it is built with, on two lines; no lone AgentEnact tag', () => {
-    const house = html(card({ ...deck, builder: 'hosted', creator: { kind: 'house' } }));
-    expect(house).toContain('<span class="mkr mk-maker"><span class="mkr-built">Built with AgentEnact</span></span>');
-    expect(house).not.toContain('Created by');
-    expect(house).not.toContain('sealed');
+    const here = html(card({ ...deck, builder: 'hosted' }));
+    expect(here).toContain('<span class="mkr mk-maker"><span class="mkr-built">Built with AgentEnact</span></span>');
+    expect(here).not.toContain('sealed');
     const ext = html(card({ ...deck, creator: { kind: 'owner', address: `G${'M'.repeat(51)}TUVW` } }));
     expect(ext).toContain('Created by <span class="mkr-addr">GMMM…TUVW</span>');
     expect(ext).not.toContain('Built with AgentEnact');

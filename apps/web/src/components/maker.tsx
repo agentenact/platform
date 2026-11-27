@@ -2,10 +2,8 @@ import type { Builder, Creator } from '../lib/explore';
 import { shorten } from '../lib/format';
 
 /**
- * Who made an agent and what it is built with, as two separate lines (Kerem, 2026-11-26: a lone "AgentEnact" tag read as
- * if AgentEnact made every agent). "Created by" names the on-chain owner; house agents (AgentEnact's own) get no
- * "Created by" line at all (Kerem, 2026-11-27). "Built with AgentEnact" shows for agents built here (hosted or library),
- * never for external ones.
+ * Who made an agent and what it is built with, as two separate lines: "Created by" names the on-chain owner, and "Built
+ * with AgentEnact" shows for agents built here (hosted or library), never for external ones.
  */
 export function makerLines(a: { builder: Builder; creator?: Creator | undefined }): { by: { name: string; title: string; address: boolean } | null; built: boolean } {
   const c = a.creator;
