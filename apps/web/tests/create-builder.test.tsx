@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { CodeBlock } from '../src/components/code-block';
 import { CreateBuilder } from '../src/components/create-builder';
 import { DraftFlowView } from '../src/components/draft-flow';
-import { TemplateIcon } from '../src/components/template-icon';
+import { TemplateArt, TemplateIcon, templateHue } from '../src/components/template-icon';
 import { copy } from '../src/copy';
 import { CODE_ANCHORS, DESCRIBE, editDraft, readBuilderParams, viewForHash } from '../src/lib/builder';
 import { createDraftController, type DraftActions } from '../src/lib/draft-controller';
@@ -47,7 +47,7 @@ describe('the template list', () => {
       expect(html).toContain(t.title);
       expect(html).toContain(t.summary);
       expect(html).toContain(`href="/create?template=${t.id}"`);
-      expect(html).toContain(renderToStaticMarkup(createElement(TemplateIcon, { id: t.id, size: 18 })));
+      expect(html).toContain(renderToStaticMarkup(createElement(TemplateArt, { id: t.id, size: 36 })));
     }
     const own = html.indexOf(`data-template="${DESCRIBE}"`);
     expect(own).toBeGreaterThan(Math.max(...order));
@@ -78,6 +78,12 @@ describe('the cockpit', () => {
   test('every ready agent has an icon of its own, never the fallback spark', () => {
     const spark = renderToStaticMarkup(createElement(TemplateIcon, { id: 'no-such-template' }));
     for (const t of TEMPLATES) expect([t.id, renderToStaticMarkup(createElement(TemplateIcon, { id: t.id })) === spark]).toEqual([t.id, false]);
+  });
+  test('every ready agent has its own illustration in a hue no other one uses', () => {
+    const hues = TEMPLATES.map((t) => templateHue(t.id));
+    for (const [i, t] of TEMPLATES.entries()) expect([t.id, typeof hues[i]]).toEqual([t.id, 'number']);
+    expect(new Set(hues).size).toBe(TEMPLATES.length);
+    for (const t of TEMPLATES) expect(renderToStaticMarkup(createElement(TemplateArt, { id: t.id }))).toContain(`data-template-art="${t.id}"`);
   });
   test('a wallet agent names only networks it offers: no network in its facts that the choice lacks', () => {
     for (const t of TEMPLATES) {

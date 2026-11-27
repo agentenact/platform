@@ -9,7 +9,7 @@ import { CreateNav, type NavGroup } from '@/components/create-nav';
 import { CreateSection } from '@/components/create-section';
 import { DraftSentence } from '@/components/draft-sentence';
 import { HarnessDialog } from '@/components/harness-dialog';
-import { TemplateIcon } from '@/components/template-icon';
+import { TemplateArt, TemplateIcon } from '@/components/template-icon';
 import { copy } from '@/copy';
 import { DESCRIBE, editDraft, readBuilderParams, viewForHash, type View } from '@/lib/builder';
 import type { DraftData, OptionValue } from '@/lib/draft-types';
@@ -267,9 +267,13 @@ function ReadyList({ selected, choose, className = '' }: { selected: string; cho
                 onClick={choose(id)}
                 className={`flex w-full items-center gap-3 rounded-[12px] border border-transparent px-2.5 py-2.5 text-left transition-colors duration-150 hover:bg-[var(--hover)] aria-[current=true]:border-[var(--wax-edge)] aria-[current=true]:bg-[var(--wax-tint)] ${ring}`}
               >
-                <span className="grid size-9 shrink-0 place-items-center rounded-[9px] bg-[var(--wax-tint)] text-accent-ink">
-                  {t ? <TemplateIcon id={t.id} size={18} /> : <span className="text-[17px] leading-none">+</span>}
-                </span>
+                {t ? (
+                  <TemplateArt id={t.id} size={36} />
+                ) : (
+                  <span className="grid size-9 shrink-0 place-items-center rounded-[9px] bg-[var(--wax-tint)] text-accent-ink">
+                    <span className="text-[17px] leading-none">+</span>
+                  </span>
+                )}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[14.5px] font-medium text-fg">{t?.title ?? 'Describe your own'}</span>
                   <span className="block truncate text-[12.5px] text-fg-3">{t?.summary ?? 'Say what it should do, in one sentence.'}</span>
@@ -532,9 +536,13 @@ export function CreateBuilder({ selected: initialSelected, values: initialValues
             </Bar>
 
             <div className="mt-6 flex items-center gap-4 border-t border-[var(--raised-line)] pt-6 max-lg:mt-3 max-lg:border-t-0 max-lg:pt-3">
-              <span className="grid size-14 shrink-0 place-items-center rounded-[14px] bg-[var(--wax-tint)] text-accent-ink">
-                {template ? <TemplateIcon id={template.id} size={28} /> : <PenIcon />}
-              </span>
+              {template ? (
+                <TemplateArt id={template.id} size={56} />
+              ) : (
+                <span className="grid size-14 shrink-0 place-items-center rounded-[14px] bg-[var(--wax-tint)] text-accent-ink">
+                  <PenIcon />
+                </span>
+              )}
               <div className="min-w-0">
                 <h2 id="window-h" className="text-[20px] font-semibold text-fg">
                   {template?.title ?? 'Describe your own'}

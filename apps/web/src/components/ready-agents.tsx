@@ -1,7 +1,7 @@
 import { builderUrl } from '@/lib/panel-url';
 import { TEMPLATES } from '@/lib/templates';
 import { AppLink } from '@/components/app-link';
-import { TemplateIcon } from './template-icon';
+import { TemplateArt } from './template-icon';
 
 /** The four the homepage shows, one of each kind; /create lists them all. */
 export const FEATURED = ['xlm-drop', 'coin-crash', 'wallet-watch', 'daily-digest'];
@@ -22,9 +22,7 @@ export function ReadyAgents() {
           {TEMPLATES.filter((t) => FEATURED.includes(t.id)).map((t) => (
             <li key={t.id} className="min-w-0">
               <AppLink href={builderUrl({ template: t.id })} className="card group flex h-full flex-col gap-4 p-5 transition-colors hover:border-[var(--edge-strong)]">
-                <span className="grid size-11 place-items-center rounded-[12px] bg-[var(--wax-tint)] text-accent-ink">
-                  <TemplateIcon id={t.id} />
-                </span>
+                <TemplateArt id={t.id} size={44} />
                 <span className="text-[17px] font-semibold">{t.title}</span>
                 <span className="text-[14px] leading-[1.5] text-fg-2">{t.summary}</span>
                 <span className="mt-auto pt-2 text-[13px] font-medium text-accent-ink">
